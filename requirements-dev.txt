@@ -1,0 +1,5 @@
+# Test-only dependencies (not needed to run the app).
+# Browser tests (tests/test_ui_pages.py, tests/check_ui_basics.py, tests/screenshot_pages.py) use Playwright with an
+# already-downloaded Chromium (`python -m playwright install chromium` once); they are skipped if it is missing.
+-r requirements.txt
+playwright==1.63.0

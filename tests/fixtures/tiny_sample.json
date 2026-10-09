@@ -1,0 +1,32 @@
+[
+ {
+  "speaker": "host",
+  "text": "Welcome to the garden club. Which plants are you growing this season?",
+  "t_ms": 1000,
+  "t_end_ms": 5560
+ },
+ {
+  "speaker": "guest",
+  "text": "My plants this season are mostly tomatoes and beans, plus a few herbs.",
+  "t_ms": 6760,
+  "t_end_ms": 10940
+ },
+ {
+  "speaker": "host",
+  "text": "How often can you help at the shared plot?",
+  "t_ms": 12140,
+  "t_end_ms": 15560
+ },
+ {
+  "speaker": "guest",
+  "text": "Not sure yet. I could help maybe twice a month, on weekends.",
+  "t_ms": 16760,
+  "t_end_ms": 19040
+ },
+ {
+  "speaker": "host",
+  "text": "Thanks, that's all for now.",
+  "t_ms": 20240,
+  "t_end_ms": 22140
+ }
+]

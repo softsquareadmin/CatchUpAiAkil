@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "id": "82fd886a2f9948f9936d9ecd142ce03b",
+  "name": "Testing Template",
+  "config": {
+    "conversation": {
+      "purpose": "Track the interview against its goals, capture the candidate’s experience and skills, and identify important topics that remain unanswered or need clarification. Suggest follow-up questions to help the interviewer assess the candidate’s suitability for the role.",
+      "pay_attention_to": [
+        "Important facts",
+        "Questions",
+        "Decisions",
+        "Unresolved items"
+      ],
+      "topics_to_cover": [
+        {
+          "id": "topic_07e9772a565d4fbe9a0f0f04fef75750",
+          "label": "Professional background and career motivation",
+          "criteria": [
+            "candidate's educational background",
+            "relevant employment or internship experiences",
+            "significant responsibilities",
+            "professional interests",
+            "career aspirations",
+            "how the opportunity aligns with longer-term goals",
+            "relationship between past experiences and motivation for pursuing the position"
+          ]
+        },
+        {
+          "id": "topic_8616385472f04c8db222fa554f75310d",
+          "label": "Problem-solving and analytical thinking",
+          "criteria": [
+            "a specific problem encountered",
+            "why the problem was challenging",
+            "circumstances of the problem",
+            "candidate's responsibilities",
+            "methods used to investigate possible solutions",
+            "alternatives considered",
+            "why a particular approach was selected",
+            "individual role in implementing the solution",
+            "outcome of the solution",
+            "measurable results such as cost savings, efficiency improvements, quality improvements, or reduced project delays"
+          ]
+        },
+        {
+          "id": "topic_6c498c44573840d6a1e5bc01a889301f",
+          "label": "Leadership and team management",
+          "criteria": [
+            "a time when the candidate led a team or project",
+            "team composition and size",
+            "leadership responsibilities",
+            "how work was organized or tasks were delegated",
+            "team challenges such as conflicting opinions, performance concerns, communication difficulties, or competing priorities",
+            "results achieved by the team",
+            "how the candidate's leadership contributed to those outcomes"
+          ]
+        },
+        {
+          "id": "topic_41475a43e50a4252ac801aa31a709c60",
+          "label": "Communication and interpersonal skills",
+          "criteria": [
+            "a situation where complex information was communicated or challenging conversations were managed",
+            "the purpose of the communication",
+            "the intended audience",
+            "the approach selected",
+            "how mutual understanding was ensured",
+            "how questions or concerns were handled",
+            "communication barriers",
+            "resulting decisions, improved relationships, resolved misunderstandings, or successful delivery of information"
+          ]
+        },
+        {
+          "id": "topic_68577f9cea0f4616a675a682565dee91",
+          "label": "Persuasion, negotiation, and influencing others",
+          "criteria": [
+            "the initial disagreement or resistance",
+            "the individuals or group involved",
+            "the desired outcome",
+            "how the candidate prepared the argument",
+            "evidence presented",
+            "objections addressed",
+            "how the approach was adapted during the interaction",
+            "whether the other party changed position",
+            "the practical outcome of the decision"
+          ]
+        },
+        {
+          "id": "topic_d2e93891ffd742879f6a618daf40637d",
+          "label": "Conflict resolution",
+          "criteria": [
+            "a genuine disagreement involving colleagues, supervisors, clients, or other stakeholders",
+            "the cause of the disagreement",
+            "the different perspectives involved",
+            "the candidate's responsibility in resolving the issue",
+            "how the candidate approached the other parties",
+            "how emotions were managed",
+            "how common ground was identified",
+            "whether the disagreement was resolved",
+            "how the experience affected subsequent working relationships"
+          ]
+        },
+        {
+          "id": "topic_37ff8a82ba80493baabdc86b16110f17",
+          "label": "Time management and prioritization",
+          "criteria": [
+            "multiple competing responsibilities",
+            "the nature of the competing tasks",
+            "the deadlines involved",
+            "the business considerations affecting priorities",
+            "methods used to determine which tasks required immediate attention",
+            "how priorities were communicated",
+            "how plans were adjusted when circumstances changed",
+            "the outcome of the prioritization decisions",
+            "improvements made to the approach over time"
+          ]
+        },
+        {
+          "id": "topic_8951aae69ca840279fd4191ef792e053",
+          "label": "Adaptability and managing change",
+          "criteria": [
+            "a significant change to a project, work environment, process, or organizational expectation",
+            "the original situation",
+            "the nature of the change",
+            "the challenges created by the new circumstances",
+            "how plans were adjusted",
+            "how new information was learned",
+            "how others were collaborated with",
+            "how productivity was maintained",
+            "the effectiveness of the response",
+            "lessons applicable to future situations"
+          ]
+        },
+        {
+          "id": "topic_2204e79117ba448cb249f49c74cda5f3",
+          "label": "Accountability and learning from failure",
+          "criteria": [
+            "a meaningful example of a mistake, unsuccessful decision, or project that did not meet expectations",
+            "the candidate's responsibility in the situation",
+            "factors that contributed to the outcome",
+            "how the candidate responded after recognizing the issue",
+            "corrective actions taken",
+            "how affected stakeholders were communicated with",
+            "what the candidate learned",
+            "whether working practices changed to prevent similar issues"
+          ]
+        },
+        {
+          "id": "topic_14a7506abc7c4b01b6a02c077a648522",
+          "label": "Handling ethical dilemmas and professional integrity",
+          "criteria": [
+            "a genuine ethical concern or integrity-related decision",
+            "the circumstances that created the dilemma",
+            "the conflicting responsibilities, values, or expectations involved",
+            "the options available to the candidate",
+            "the decision made",
+            "the reasoning behind that decision",
+            "the actions taken to address the situation",
+            "the consequences of those actions",
+            "lessons learned",
+            "demonstration of ethical responsibility, transparency, and maintaining professional standards under pressure"
+          ]
+        },
+        {
+          "id": "topic_100466721da34312906e823356b18b60",
+          "label": "Initiative and ownership",
+          "criteria": [
+            "an example where the candidate proactively addressed an issue, proposed an improvement, or assumed additional responsibilities",
+            "how the opportunity or problem was recognized",
+            "why the candidate decided to act",
+            "whether approval or support from other stakeholders was needed",
+            "the specific steps taken",
+            "challenges encountered",
+            "how responsibility was maintained for completing the initiative",
+            "the results of the effort",
+            "the value created for the organization, team, or customer"
+          ]
+        },
+        {
+          "id": "topic_4b0c11be609d460a98631e7193db1cc6",
+          "label": "Collaboration and cross-functional teamwork",
+          "criteria": [
+            "a project involving people from different teams, disciplines, departments, or professional backgrounds",
+            "the shared objective",
+            "the roles of the participating teams",
+            "the candidate's specific contribution",
+            "how information was shared",
+            "how dependencies were managed",
+            "how disagreements or coordination challenges were addressed",
+            "whether the collaborative effort achieved its objectives",
+            "how the candidate contributed to the overall result"
+          ]
+        },
+        {
+          "id": "topic_e3ff37038fcc4979a4b1bb56a084d980",
+          "label": "Self-awareness and professional development",
+          "criteria": [
+            "genuine professional strengths",
+            "an area the candidate is currently working to improve",
+            "how strengths have been demonstrated in practical situations",
+            "how strengths contribute to performance",
+            "specific examples illustrating weaknesses and how they have affected work",
+            "steps taken to improve, including training, mentoring, feedback, or changes in working habits",
+            "evidence of progress",
+            "future development goals"
+          ]
+        },
+        {
+          "id": "topic_ff11d73eb1e94f7f98026eb2b0c85e32",
+          "label": "Customer and stakeholder management",
+          "criteria": [
+            "experiences involving customers, clients, management, external partners, or internal stakeholders",
+            "the stakeholder's expectations",
+            "the challenges involved",
+            "methods used to understand requirements",
+            "how progress was communicated",
+            "how disagreements were managed",
+            "how changing expectations were responded to",
+            "how professional relationships were maintained",
+            "the outcome of the engagement",
+            "how actions affected stakeholder satisfaction or project success"
+          ]
+        },
+        {
+          "id": "topic_c7e6344ac7894c57bd3891c5dcd83864",
+          "label": "Decision-making under pressure",
+          "criteria": [
+            "a difficult decision made under challenging circumstances",
+            "the nature of the pressure",
+            "the available information",
+            "the risks involved",
+            "the alternatives considered",
+            "the candidate's personal decision-making responsibility",
+            "how possible consequences were evaluated",
+            "the outcome of the decision",
+            "what the candidate learned about managing pressure and uncertainty"
+          ]
+        },
+        {
+          "id": "topic_58f25a49ff26435bbcc00e0aa52f122d",
+          "label": "Interview documentation and evaluation standards",
+          "criteria": [
+            "which competencies were sufficiently demonstrated",
+            "which competencies require further exploration",
+            "which areas were not addressed",
+            "evidence from the candidate rather than assumptions",
+            "missing information that requires follow-up",
+            "consistent evaluation standards across candidates",
+            "assessment relevance to the requirements of the role"
+          ]
+        }
+      ],
+      "speakers": [
+        {
+          "id": "speaker_1",
+          "role": "Participant 1"
+        },
+        {
+          "id": "speaker_2",
+          "role": "Participant 2"
+        }
+      ]
+    },
+    "report": {
+      "sections": [
+        {
+          "label": "Summary",
+          "type": "text",
+          "instruction": "Summarize the conversation heard so far.",
+          "required": true,
+          "id": "summary"
+        },
+        {
+          "label": "Important Facts",
+          "type": "list",
+          "instruction": "List important facts explicitly learned during the conversation.",
+          "required": true,
+          "id": "important_facts"
+        },
+        {
+          "label": "Questions Not Yet Asked",
+          "type": "list",
+          "instruction": "Compare the important questions and information to cover in the configured Pay attention to focus areas against the conversation so far. List questions that have not yet been asked and whose answers have not otherwise been provided. Treat information volunteered by a participant as covered. Do not invent a required question checklist when none is configured; return an empty list when no uncovered configured questions remain.",
+          "required": true,
+          "id": "questions_not_yet_asked"
+        },
+        {
+          "label": "Questions Needing Clarification",
+          "type": "list",
+          "instruction": "List important questions that were asked but received no answer, a vague answer, or an incomplete answer, including questions the interviewer moved away from before obtaining a clear response. For each item, explain what remains unclear and suggest a specific follow-up question. Consider later answers in the conversation so far and exclude questions that have since been clearly answered. Return an empty list when none need clarification.",
+          "required": true,
+          "id": "questions_needing_clarification"
+        },
+        {
+          "label": "Recommended Next Action",
+          "type": "text",
+          "instruction": "Suggest a useful next action grounded in the conversation.",
+          "required": true,
+          "id": "recommended_next_action"
+        }
+      ]
+    }
+  }
+}

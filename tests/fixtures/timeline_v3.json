@@ -1,0 +1,13 @@
+{
+  "_note": "Expected checklist after each fixture line under the v2 pack (coverage + follow-up marker). Each entry is [line, status, follow_up]; the latest entry at or before a line applies; unlisted topics stay not_covered/none. Consent timeline approved by the owner 2026-10-08; caregivers and child account follow the owner's answers (Q4, Q6, Q14); child's safety at line 22 ('When he yells.') is covered with follow-up suggested (owner, 2026-10-08); household is covered from line 10 (parent and child count as named; owner, 2026-10-08), with follow-up suggested to ask about anyone else. Other entries are Claude's draft labels; see OPEN items in docs/topic-definitions-draft.md.",
+  "topics": {
+    "recording_consent": [[3, "partial", "none"], [6, "covered", "none"]],
+    "child_age_grade": [[8, "covered", "none"]],
+    "parent_account": [[10, "partial", "suggested"], [12, "covered", "none"]],
+    "child_account": [[17, "partial", "suggested"]],
+    "household_members": [[10, "covered", "suggested"]],
+    "caregivers": [[14, "covered", "none"]],
+    "child_safety_feelings": [[17, "partial", "required"], [22, "covered", "suggested"]],
+    "medical_attention": [[16, "covered", "none"]]
+  }
+}

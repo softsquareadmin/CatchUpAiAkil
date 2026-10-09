@@ -1,0 +1,174 @@
+# Job interview pack: imported from the CatchUpAI 'Interview' template (a93b650f...json, CatchUpAI d547231)
+# with `python -m app.import_template`, then edited by hand: name, persona, purpose, guardrails, sample
+# script, Recommended Next Action instruction. Topics and criteria are the template's, unchanged (tier 1).
+id: job_interview_v1
+version: "0.1.0"
+pack_format: 2
+name: Job interview
+# purpose: reworded so the tool does not decide suitability (confirmed by the owner 2026-10-08).
+purpose: Track the interview against its goals, capture the candidate's experience and skills, identify topics that
+  remain unanswered or need clarification, and suggest follow-up questions. Any overall assessment is a draft for
+  the interviewer to verify.
+pay_attention_to:
+- Relevant experience and technical skills
+- Personal contributions and project outcomes
+- Problem-solving approach and decision-making
+- Communication, teamwork, and ownership
+- Specific examples supporting the candidate’s claims
+- Vague, incomplete, or inconsistent answers
+- Important interview questions missed or left unanswered
+persona: You assist an interviewer during and after a job interview. You assist; you never decide. You never judge
+  credibility, and you never ask about, infer or use protected characteristics.
+roles:
+- id: interviewer
+  label: Interviewer
+  kind: user
+- id: candidate
+  label: Candidate
+  kind: subject
+sample_script: tests/fixtures/job_interview_sample.json
+checklist:
+- id: professional_background_and_experience
+  label: Professional Background and Experience
+  criteria:
+  - Candidate's educational background and university
+  - At least two previous internships or organizations
+  - Technical and business experience
+  - Long-term career aspiration
+  required: true
+- id: problem_solving_and_measurable_results
+  label: Problem-Solving and Measurable Results
+  criteria:
+  - A specific difficult problem or challenge
+  - Actions personally taken to solve the problem
+  - A clear outcome or measurable result
+  - Candidate's contribution to achieving that result
+  required: true
+- id: leadership_and_team_management
+  label: Leadership and Team Management
+  criteria:
+  - A specific leadership experience
+  - Team size and responsibilities
+  - How the candidate handled team conflict or performance challenges
+  - Project outcome and impact
+  required: true
+- id: weakness_and_professional_improvement
+  label: Weakness and Professional Improvement
+  criteria:
+  - Candidate identifies a genuine professional weakness
+  - Provides a specific real-life example of its impact
+  - Explains concrete steps taken to improve
+  - Provides evidence or measurable progress demonstrating improvement
+  required: true
+- id: handling_ethical_dilemmas
+  label: Handling Ethical Dilemmas
+  criteria:
+  - A specific ethical dilemma or workplace integrity issue
+  - Competing responsibilities or ethical considerations
+  - Action taken to resolve the situation
+  - Outcome and lessons learned
+  required: true
+# guardrails: hiring rules for this demo pack (confirmed by the owner 2026-10-08).
+# allow_overall_recommendation is on for this demo pack only (SPEC-M7 item 7). Not for real hiring use.
+guardrails:
+  prompt_rules:
+  - Never ask about, infer or use protected characteristics (for example age, race, ethnicity, religion, pregnancy,
+    marital or family status, disability or health, sexual orientation, gender identity, national origin or citizenship,
+    veteran status).
+  - Judge answers only against the topic criteria and what the candidate said, never against the candidate as a
+    person.
+  question_lint:
+    open_ended_only: true
+    blocked_terms:
+    - age
+    - ages
+    - aged
+    - how old
+    - date of birth
+    - birthday
+    - year of birth
+    - race
+    - racial
+    - ethnic*
+    - religio*
+    - church
+    - mosque
+    - temple
+    - pregnan*
+    - maternity
+    - paternity
+    - married
+    - marital
+    - spouse
+    - husband
+    - wife
+    - children
+    - kids
+    - family plans
+    - childcare
+    - disab*
+    - health condition
+    - medical condition
+    - illness
+    - sexual*
+    - gender
+    - transgender
+    - nationality
+    - national origin
+    - citizen*
+    - immigra*
+    - accent
+    - veteran
+    - military status
+    - genetic*
+    act_terms: []
+    name_with_act_rule: false
+  note_blocked_patterns:
+  - \b(lie|lies|lied|lying|liar|credib\w*|believable|truthful|dishonest\w*|made (it|that|this) up)\b
+  - \b(age|aged|how old|date of birth|race|racial|ethnic\w*|religio\w*|pregnan\w*|maternity|married|marital|spouse|husband|wife|children|family
+    plans|disab\w*|health condition|medical condition|sexual\w*|gender|transgender|nationality|national origin|citizen\w*|immigra\w*|accent|veteran|genetic\w*)\b
+  follow_up_required_when: ''
+  allow_overall_recommendation: true
+  overall_assessment_instruction: 'Base it only on the topic criteria and the candidate''s quoted answers: strengths
+    and gaps per topic, then a short draft view for the interviewer to verify. Never use protected characteristics.
+    Not for real hiring decisions.'
+review:
+  sections:
+  - summary
+  - topics_not_covered
+  - follow_ups
+  - next_steps
+  custom_sections:
+  - id: summary
+    label: Summary
+    type: text
+    instruction: Summarize the conversation heard so far.
+    required: true
+  - id: important_facts
+    label: Important Facts
+    type: list
+    instruction: List important facts explicitly learned during the conversation.
+    required: true
+  - id: questions_not_yet_asked
+    label: Questions Not Yet Asked
+    type: list
+    instruction: Compare the important questions and information to cover in the configured Pay attention to focus
+      areas against the conversation so far. List questions that have not yet been asked and whose answers have
+      not otherwise been provided. Treat information volunteered by a participant as covered. Do not invent a required
+      question checklist when none is configured; return an empty list when no uncovered configured questions remain.
+    required: true
+  - id: questions_needing_clarification
+    label: Questions Needing Clarification
+    type: list
+    instruction: List important questions that were asked but received no answer, a vague answer, or an incomplete
+      answer, including questions the interviewer moved away from before obtaining a clear response. For each item,
+      explain what remains unclear and suggest a specific follow-up question. Consider later answers in the conversation
+      so far and exclude questions that have since been clearly answered. Return an empty list when none need clarification.
+    required: true
+  - id: recommended_next_action
+    label: Recommended Next Action
+    type: text
+    instruction: 'Suggest the interviewer''s next action grounded in the conversation: follow-up questions to ask
+      and topics that are unfinished. Do not give an overall recommendation about the candidate here; when allowed,
+      it belongs only in the overall assessment.'
+    required: true

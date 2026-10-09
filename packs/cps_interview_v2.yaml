@@ -1,0 +1,235 @@
+# v2 definitions: docs/topic-definitions-draft.md (draft 2) with the owner's answers to Q1-Q14 (2026-10-08).
+# Examples are invented on purpose and are NOT taken from the test interview.
+# Pending John Smith's formal approval of the full topic list.
+# 0.4.0 (M7, 2026-10-08): pack_format 2. CPS rules moved here from code (roles, lint word lists, special topics,
+# review sections, prompt text); topic definitions unchanged. Change log: docs/dev-notes/PROGRESS.md "Pack change log".
+id: cps_interview_v2
+version: "0.4.0"   # 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
+pack_format: 2
+name: CPS interview (parent and child)
+purpose: >
+  A caseworker interviews a parent and a child about a concern reported to the agency. Track the required
+  topics, capture what each person says in their own words, mark answers that need a follow-up, and draft a
+  note for the caseworker to review. The tool assists; the caseworker decides.
+roles:
+  - {id: worker, label: Worker, kind: user, aliases: [worker, caseworker, cps, interviewer]}
+  - {id: parent, label: Parent, kind: subject, aliases: [parent, mom, mother, dad, father, guardian]}
+  - {id: child, label: Child, kind: subject, aliases: [child, kid]}
+sample_script: tests/fixtures/script_v2.json   # demo transcript for Replay
+persona: >
+  You assist a child welfare (CPS) caseworker during and after an interview with a parent
+  and a child. You assist; you never decide. You never judge credibility and never state or
+  imply whether abuse or maltreatment occurred.
+
+checklist:
+  - id: recording_consent
+    label: Consent to recording
+    definition: >
+      Required: the parent agrees to the recording and the child agrees. Partial: only one has agreed.
+      Covered: both have agreed. If the parent or the child refuses, raise a flag on this topic saying
+      consent was refused (the worker will be asked to stop the tool).
+    required: true
+    demo: {speakers: [parent, child], keywords: [consent, 'you may use']}
+  - id: child_age_grade
+    label: Child's age and grade
+    definition: >
+      Required: the child's age and current school grade (or that the child is not in school).
+      For a child below 2nd grade the parent's answer counts. For a child in 2nd grade or above the
+      child must say it; if only the parent says it, the topic is partial.
+      Follow-up required: the parent and the child give different answers.
+    required: true
+    demo: {speakers: [child, parent], keywords: [grade, 'years old']}
+  - id: parent_account
+    label: Parent's account of injury
+    definition: >
+      Required, in the parent's own words: what happened and where. When it happened is not required,
+      but if it is missing, follow-up is suggested. Whether the parent saw it or was told is useful,
+      not required. Also useful, not required (follow-up suggested if missing): when the parent first
+      noticed the injury, and who was supervising the child when it happened.
+      Partial: only some of what or where. Follow-up required: the parent's account
+      changes during the interview, or contradicts the child's account.
+    required: true
+    demo: {speakers: [parent], keywords: [fell, tripped, bruise]}
+  - id: child_account
+    label: Child's account of injury
+    definition: >
+      Required, in the child's own words: what happened, where, and who was there. When it happened is
+      not required, but if it is missing, follow-up is suggested. If the child says they do not know or
+      do not remember, the topic is partial with follow-up suggested (probe once, never force an answer).
+      Follow-up required: the child's account contradicts the parent's.
+      Example: Child: "I don't remember. It just happened." -> partial, follow-up suggested.
+    required: true
+    demo: {speakers: [child], keywords: [happened, 'hit me', fell]}
+  - id: household_members
+    label: Household members
+    definition: >
+      Required: everyone who lives in the home, named, with their relationship to the child. The parent
+      and the child in the interview count as named by taking part. No confirmation that the list is
+      complete is needed, but when covered, follow-up is suggested: ask whether anyone else lives or
+      stays there. Partial: some people named, or relationships missing. Follow-up required: the parent
+      and the child give lists that contradict.
+    required: true
+    demo: {speakers: [parent, child], keywords: ['lives here', 'live with']}
+  - id: caregivers
+    label: Caregivers while parent works
+    definition: >
+      Required: who cares for the child while the parent works (a name) and their relationship to the
+      child. How often or when they provide care is not required, nor whether anyone else does.
+      If the report names a person, the answer must say whether that person looks after the child.
+      Partial: a caregiver mentioned without a name or relationship ("a neighbour helps out").
+      Example, covered: "My mom, his grandma, watches him after school."
+    required: true
+    demo: {speakers: [parent, child], keywords: ['here most days', 'watches her', babysit]}
+  - id: child_safety_feelings
+    label: Child's feelings of safety
+    definition: >
+      Required, in the child's own words: whether they feel safe at home, and why, or when they do not.
+      Partial: "I feel safe" with no reason. Follow-up required: the child says they feel unsafe,
+      afraid, or that someone scares them, without saying why or when, or answers "I don't know" to a
+      safety question. Once the child gives even a short reason or time, follow-up becomes suggested,
+      not required: the worker decides whether to probe further. Describing the person ("he is
+      sometimes mean") is too vague to count as a reason: follow-up stays required.
+      Example, follow-up required: "Sometimes I don't like being home."
+      Example, then covered with follow-up suggested: asked when, the child says "At night."
+    required: true
+    demo: {speakers: [child], keywords: [afraid, scares, safe], required_words: [afraid, scares, scared]}
+  - id: medical_attention
+    label: Medical attention for injury
+    definition: >
+      Required: whether the child was seen by a doctor, nurse or clinic; if yes, where and when.
+      "No medical attention was sought" is a complete answer (covered). If no care was sought and no
+      reason was given, follow-up is suggested (record only whether a reason was given, never whether
+      it is a good reason). Partial: "yes" without where or when. Follow-up required: the parent and the
+      child contradict each other about it.
+    required: true
+    demo: {speakers: [parent], keywords: [doctor, nurse, 'just a bruise']}
+  - id: prior_injuries
+    label: Prior or other injuries
+    definition: >
+      Required: the worker asked about (a) earlier injuries or concerns and (b) any other injuries or
+      marks the child has now, and both the parent and the child answered. Partial: only one of them
+      answered, or only (a) or (b) was asked. Follow-up required: their answers contradict.
+      Follow-up suggested: an answer is vague.
+    required: true
+    demo: {speakers: [parent, child], keywords: [before, 'last time']}
+  - id: other_contacts
+    label: Other people to contact
+    definition: >
+      Required: at least one person outside the home, specific enough to reach: a name plus a role or
+      place (for example "Ms Lopez, her teacher at Oak Elementary"). One contact is enough.
+      Partial: a role without a name or place ("her teacher"). Follow-up suggested: no school contact
+      has been named.
+    required: true
+    demo: {speakers: [parent, child], keywords: [teacher, counselor]}
+  - id: safety_plan
+    label: Safety plan and next steps
+    definition: >
+      Required: the worker explains what happens next, and any safety plan, and the family acknowledges.
+      If no safety plan is needed, explaining next steps is enough. The worker's own words count here.
+      Partial: explained, but no acknowledgement from the family.
+    required: true
+    demo: {speakers: [worker], keywords: ['safety plan', 'next steps']}
+
+guardrails:
+  prompt_rules:
+    - Never state or imply whether abuse, maltreatment or neglect occurred.
+  # Was the HARM / JUDGE_QUESTION / JUDGE_NOTE lists in app/cues.py (moved unchanged, M7).
+  follow_up_required_when: >-
+    statements contradict each other, or the child mentions feeling afraid or unsafe without saying why or when
+  question_lint:
+    open_ended_only: true
+    blocked_terms: [lie, lies, lied, lying, liar, "credib*", believable, truthful, truth, "honest*",
+                    made it up, made that up, made this up, making it up, making that up, making this up,
+                    "exaggerat*", "maltreat*", "abus*", "neglect*",
+                    # placement and custody are decisions for the agency, never a question's premise (M7)
+                    foster care, removed from the home, removed from home, "custody"]
+    act_terms: [hit, hits, hitting, beat, beats, beating, "punch*", "kick*", "push*", "shov*", threw, "throw*",
+                "slap*", "grab*", "chok*", "smack*", "whip*", "spank*", "touch*", "abus*"]
+    name_with_act_rule: true
+  note_blocked_patterns:
+    - '\b(lie|lies|lied|lying|liar|credib\w*|believable|truthful|made (it|that|this) up|making (it|that|this) up|exaggerat\w*)\b'
+    - '\b(abuse|maltreatment|neglect) (occurred|happened|took place)\b'
+    - '\bwas (abused|maltreated|neglected)\b'
+    # placement and custody conclusions (M7: kept out even when the overall assessment is switched on)
+    - '\b(should|must|needs? to|ought to) be (removed|placed)\b'
+    - '\bremov(e|ed|al|ing) (\w+ )?from (the |her |his |their )?home\b'
+    - '\b(placed|placement) (in|into) (foster|kinship|out of home) care\b'
+    - '\b(should|must|will) (lose|keep|get|be given) custody\b'
+  allow_overall_recommendation: false   # owner decision 2026-10-08: may be switched on for testing; log it
+  overall_assessment_instruction: >-
+    Word the overall assessment as options for the worker to consider, never as a verdict. Never state or imply
+    whether abuse, maltreatment or neglect occurred, who is credible, or what should happen to the child's
+    placement or custody.
+
+special_topics:
+  consent_topic: recording_consent        # consent refusal raises the stop prompt
+  audience_hint_topic: child_age_grade    # the child's age and grade, as said, for the cue writer
+  audience_hint_instruction: >-
+    If the question is for the child, word it for the child's age given in <audience>: one short sentence with
+    simple, everyday words. If the age is unknown, use simple words.
+
+review:
+  sections: [summary, topics_not_covered, follow_ups, form, timeline, accounts, missing_accounts, next_steps]
+  extra_sources:
+    - {id: report, label: The report, spoken_by: worker, description: the worker reading out the report}
+  account_groups:
+    - {topics: [parent_account, child_account], label: How the injury happened}
+  instructions:
+    summary: >-
+      one item per point a person made, in order, written as reports ("Mom said...", "Jill said...",
+      "The report says...").
+    timeline: >-
+      what was said about when: when it happened, when it was noticed, who was supervising, whether care was
+      sought. "when" as said (for example "Tuesday night"), or "not stated".
+    missing_accounts: >-
+      adults named in the report or by the family who were not interviewed and whose account could matter (for
+      example a caregiver named in the report). mentioned_as: who named them and how.
+
+form_schema:
+  - id: child_age
+    label: Child age
+    type: number
+    source_topic_ids: [child_age_grade]
+  - id: child_grade
+    label: Child school grade
+    type: text
+    source_topic_ids: [child_age_grade]
+  - id: household_members
+    label: Household members
+    type: text
+    source_topic_ids: [household_members]
+  - id: caregivers
+    label: Caregivers
+    type: text
+    source_topic_ids: [caregivers]
+  - id: injury_description_as_reported
+    label: Injury description as reported
+    type: text
+    source_topic_ids: [parent_account, child_account]
+  - id: medical_attention
+    label: Medical attention sought
+    type: choice
+    choices: ["yes", "no", "not stated"]
+    source_topic_ids: [medical_attention]
+  - id: other_contacts
+    label: Other contacts
+    type: text
+    source_topic_ids: [other_contacts]
+
+live_prompts:
+  gate: >
+    Only the parent's or child's own words cover a topic, unless the definition says otherwise. The
+    worker's questions, or the worker reading out the report, never cover a topic on their own.
+    A partial topic may carry a suggested follow-up naming what is still missing.
+    Every update needs an evidence quote copied exactly from the transcript.
+  cue: >
+    Write one open-ended, non-leading follow-up question the worker could ask in their own
+    words. Never name a person as the cause unless the speaker has. Never put an answer in the
+    child's mouth. Never judge credibility or state whether abuse occurred.
+
+final_prompts:
+  review: >
+    Review the whole interview. Write an attributed summary as reports ("Mom said...",
+    "Jill said...") with no conclusions. List topics not or only partly covered, follow-ups
+    required or suggested, proposed form field values with evidence, and next steps worded as
+    options for the worker, never as findings.

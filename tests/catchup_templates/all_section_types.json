@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "00000000000000000000000000000001",
+  "name": "Made-up service check-in",
+  "config": {
+    "conversation": {
+      "purpose": "Track a short check-in call with a customer about a repair, capture what they report, and note what still needs an answer.",
+      "pay_attention_to": ["Dates", "Open questions"],
+      "speakers": [{"id": "speaker_1", "role": "Agent"}, {"id": "speaker_2", "role": "Customer"}],
+      "topics_to_cover": [
+        {"id": "topic_a", "label": "Repair status", "criteria": ["what was repaired", "whether it works now"]},
+        {"id": "topic_b", "label": "Next visit", "criteria": ["preferred date", "access instructions"]}
+      ]
+    },
+    "report": {
+      "sections": [
+        {"id": "summary", "label": "Summary", "type": "text", "instruction": "Summarize the call.", "required": true},
+        {"id": "open_items", "label": "Open items", "type": "list", "instruction": "List items still open.", "required": true, "max_items": 3},
+        {"id": "call_outcome", "label": "Call outcome", "type": "status", "instruction": "Pick the outcome.", "required": true, "options": ["Resolved", "Follow-up needed"]},
+        {"id": "visit_booked", "label": "Visit booked", "type": "boolean", "instruction": "Was a visit booked?", "required": false},
+        {"id": "clarity", "label": "Clarity of answers", "type": "score", "instruction": "Rate how clear the answers were.", "required": false, "min": 1, "max": 5}
+      ]
+    }
+  }
+}

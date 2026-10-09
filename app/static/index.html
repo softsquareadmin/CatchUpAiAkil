@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interview · Interview Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231a56c4%22/%3E%3Cpath fill=%22white%22 d=%22M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5.5a6.5 6.5 0 0 0 5.75 6.45V20h1.5v-2.55A6.5 6.5 0 0 0 18.5 11z%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/pages.css">
+</head>
+<body class="live-page">
+  <a class="skip" href="#cuesHeading">Skip to follow-up questions</a>
+  <header id="appbar" class="appbar"></header>
+
+  <div class="toolbar">
+    <label class="visually-hidden" for="packSel">Interview type</label>
+    <select id="packSel" title="Interview type. Choose before the interview starts."></select>
+    <div class="tabs modes" role="tablist" aria-label="Input mode">
+      <button type="button" role="tab" data-mode="mic" aria-selected="false">Mic</button>
+      <button type="button" role="tab" data-mode="replay" aria-selected="true">Replay</button>
+      <button type="button" role="tab" data-mode="typed" aria-selected="false">Typed</button>
+      <button type="button" role="tab" data-mode="paste" aria-selected="false">Paste</button>
+      <button type="button" role="tab" data-mode="file" aria-selected="false">Audio file</button>
+    </div>
+    <span id="replayControls" class="cfg-row">
+      <label class="inline-field">Speed
+        <select id="speed">
+          <option value="1">1x</option>
+          <option value="2">2x</option>
+          <option value="0">Instant</option>
+        </select>
+      </label>
+      <button id="replayBtn" type="button" class="btn-primary">Start replay</button>
+    </span>
+    <span class="grow"></span>
+    <span id="elapsed" class="elapsed" title="Time since the interview started">00:00</span>
+    <button id="startBtn" type="button" class="btn-primary">Start interview</button>
+    <button id="endBtn" type="button" class="btn-danger" hidden>End interview</button>
+    <button id="newBtn" type="button" hidden>New interview</button>
+  </div>
+
+  <div id="reviewBanner" class="banner" role="status" aria-live="polite" hidden>
+    <span id="reviewBannerText" class="grow"></span>
+    <a id="reviewLink" class="btn btn-primary" href="#">Open the review</a>
+  </div>
+
+  <main class="live">
+    <section class="pane transcript-pane" aria-labelledby="transcriptHeading">
+      <h2 class="section-title" id="transcriptHeading">Transcript</h2>
+      <div class="transcript-wrap">
+        <ol id="transcript" class="transcript" aria-live="polite" aria-label="Transcript"></ol>
+        <button id="jump" type="button" class="jump" hidden>Jump to latest</button>
+      </div>
+
+      <div id="micPanel" class="panel" hidden>
+        <button id="micBtn" type="button" class="btn-primary">Start mic</button>
+        <span id="micState" class="badge">mic off</span>
+      </div>
+
+      <div id="filePanel" class="panel" hidden>
+        <label class="inline-field">Audio file
+          <input id="fileInput" type="file" accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/mp4,audio/x-m4a">
+        </label>
+        <button id="fileBtn" type="button" class="btn-primary">Transcribe file</button>
+        <span id="fileState" class="badge">no file</span>
+        <label class="check"><input id="filePlay" type="checkbox" checked> Play the audio here</label>
+        <audio id="fileAudio" preload="auto" hidden></audio>
+        <p class="hint">mp3, wav or m4a. The file plays at normal speed (the speech service needs real time), so a
+          6-minute file takes 6 minutes. It is not kept unless audio storage is switched on. "Play the audio here" plays your copy of the file in
+          this browser, in step with the transcription (for demos); nothing extra is sent.</p>
+      </div>
+
+      <div id="voicePanel" class="panel" hidden>
+        <div class="mic-speaker">
+          <span id="whoLabel">Who is speaking</span>
+          <div class="speakers" id="manualSpeaker" role="group" aria-labelledby="whoLabel"></div>
+        </div>
+        <p class="hint">Auto uses the voice labels below. Tap a person to set the speaker by hand.</p>
+        <div id="labelMap" class="paste-map"></div>
+      </div>
+
+      <form id="typedPanel" class="panel" hidden>
+        <div class="speakers" id="typedSpeaker" role="group" aria-label="Speaker"></div>
+        <label class="visually-hidden" for="typedText">What was said</label>
+        <input id="typedText" autocomplete="off" placeholder="Type what was said, press Enter">
+      </form>
+
+      <div id="pastePanel" class="panel" hidden>
+        <label class="visually-hidden" for="pasteText">Transcript to paste</label>
+        <textarea id="pasteText" rows="5" placeholder="Paste a transcript, one 'Speaker: text' per line"></textarea>
+        <button id="pasteParse" type="button">Map speakers</button>
+        <div id="pasteMap" class="paste-map"></div>
+        <button id="pastePlay" type="button" class="btn-primary" hidden>Play in</button>
+      </div>
+    </section>
+
+    <section class="pane cards-pane" aria-labelledby="cuesHeading">
+      <div class="pane-scroll">
+        <h2 class="section-title" id="cuesHeading" tabindex="-1">Follow-up questions <span id="cueCount" class="badge badge-accent">0</span></h2>
+        <ul id="cues" class="cards" aria-live="polite" aria-relevant="additions text"></ul>
+        <h2 class="section-title" id="flagsHeading">Flags <span id="flagCount" class="badge badge-flag">0</span></h2>
+        <ul id="flags" class="cards" aria-live="polite" aria-relevant="additions text"></ul>
+      </div>
+    </section>
+
+    <section class="pane checklist-pane" aria-labelledby="checklistHeading">
+      <div class="pane-scroll">
+        <h2 class="section-title" id="checklistHeading">Checklist</h2>
+        <div id="coverage" class="coverage"></div>
+        <ul id="checklist" class="checklist"></ul>
+        <h2 class="section-title">Notes</h2>
+        <form id="noteForm" class="note-form">
+          <label class="visually-hidden" for="noteText">Your note</label>
+          <textarea id="noteText" rows="2" placeholder="Your own notes"></textarea>
+          <button type="submit">Add note</button>
+        </form>
+        <ul id="notes" class="notes"></ul>
+
+        <details id="expBar" class="exp-bar">
+          <summary>Experiment: <b id="expLabel">default</b> · <span id="expCost">$0.0000</span>
+            <span id="gate" class="badge" title="Checklist gate">gate</span>
+            <span id="cueState" class="badge" title="Follow-up writer">cues</span></summary>
+          <form id="expForm" class="exp-form">
+            <label class="inline-field">Label <input id="expInput" maxlength="60" autocomplete="off"></label>
+            <button type="submit">Set</button>
+            <span id="expHint" class="hint"></span>
+          </form>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>Role</th><th>Model</th><th class="num">Calls</th><th class="num">Failed</th><th class="num">Cost</th><th class="num">p50</th><th class="num">p95</th></tr></thead>
+              <tbody id="expRows"></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/live.js"></script>
+</body>
+</html>

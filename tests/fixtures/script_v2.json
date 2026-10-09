@@ -1,0 +1,186 @@
+[
+  {
+    "line": 1,
+    "speaker": "worker",
+    "text": "I am John Smith, CPS worker, I am here to discuss a concern reported about your child Jill Carter.",
+    "t_ms": 1000,
+    "t_end_ms": 9000,
+    "source": "original"
+  },
+  {
+    "line": 2,
+    "speaker": "worker",
+    "text": "Our agency has a recording tool that will transcribe our conversation today for accuracy and to assist with any issues that may be identified during our conversation. May I use that tool?",
+    "t_ms": 10200,
+    "t_end_ms": 23400,
+    "source": "original"
+  },
+  {
+    "line": 3,
+    "speaker": "parent",
+    "text": "Yes, you may use that tool.",
+    "t_ms": 24600,
+    "t_end_ms": 27400,
+    "source": "original"
+  },
+  {
+    "line": 4,
+    "speaker": "worker",
+    "text": "I am turning on the tool and asking each person in the interview to please consent to being recorded.",
+    "t_ms": 28600,
+    "t_end_ms": 36600,
+    "source": "original"
+  },
+  {
+    "line": 5,
+    "speaker": "parent",
+    "text": "I consent",
+    "t_ms": 37800,
+    "t_end_ms": 39000,
+    "source": "original"
+  },
+  {
+    "line": 6,
+    "speaker": "child",
+    "text": "I consent",
+    "t_ms": 40200,
+    "t_end_ms": 41400,
+    "source": "original"
+  },
+  {
+    "line": 7,
+    "speaker": "worker",
+    "text": "Jill, before we talk more, can you tell me how old you are and what grade you are in?",
+    "t_ms": 42600,
+    "t_end_ms": 50600,
+    "source": "added"
+  },
+  {
+    "line": 8,
+    "speaker": "child",
+    "text": "I'm seven. I'm in second grade.",
+    "t_ms": 51800,
+    "t_end_ms": 54600,
+    "source": "added"
+  },
+  {
+    "line": 9,
+    "speaker": "worker",
+    "text": "Our agency received a report that Jill came to school with a black eye. It was reported that a man named Dave, who she was left with while you were working Mom, hit her in the eye with a cup he threw at her. It is reported she said this man is often her caregiver and often gets angry and hits her with objects.",
+    "t_ms": 55800,
+    "t_end_ms": 81800,
+    "source": "original"
+  },
+  {
+    "line": 10,
+    "speaker": "parent",
+    "text": "Dave is my boyfriend and lives here. His name is Dave Mercer, and he is not abusive at all to anyone. I just am having a hard time believing it. Jill told me she fell and hit her face and that is what caused the bruising.",
+    "t_ms": 83000,
+    "t_end_ms": 101800,
+    "source": "original"
+  },
+  {
+    "line": 11,
+    "speaker": "worker",
+    "text": "Thank you for telling me that. When did you first notice the bruise, and what do you know about how it happened?",
+    "t_ms": 103000,
+    "t_end_ms": 112200,
+    "source": "added"
+  },
+  {
+    "line": 12,
+    "speaker": "parent",
+    "text": "I saw it Tuesday night when I got home from work. She said she tripped on the stairs here at the house.",
+    "t_ms": 113400,
+    "t_end_ms": 122600,
+    "source": "added"
+  },
+  {
+    "line": 13,
+    "speaker": "worker",
+    "text": "Who was with Jill that day while you were at work?",
+    "t_ms": 123800,
+    "t_end_ms": 128600,
+    "source": "added"
+  },
+  {
+    "line": 14,
+    "speaker": "parent",
+    "text": "Dave was here, he's here most days. But he was out in the garage working on his truck, he didn't see anything.",
+    "t_ms": 129800,
+    "t_end_ms": 139000,
+    "source": "added"
+  },
+  {
+    "line": 15,
+    "speaker": "worker",
+    "text": "Has Jill been seen by a doctor or nurse about her eye?",
+    "t_ms": 140200,
+    "t_end_ms": 145400,
+    "source": "added"
+  },
+  {
+    "line": 16,
+    "speaker": "parent",
+    "text": "No, it's just a bruise. It didn't seem that bad.",
+    "t_ms": 146600,
+    "t_end_ms": 151000,
+    "source": "added"
+  },
+  {
+    "line": 17,
+    "speaker": "child",
+    "text": "I don't remember what happened. Dave is sometime mean and I am afraid of him. He said he does not think he should be responsible for me when Mom is working.",
+    "t_ms": 152200,
+    "t_end_ms": 165000,
+    "source": "original"
+  },
+  {
+    "line": 18,
+    "speaker": "worker",
+    "text": "Jill, when you said he is mean, can you give me any additional information on what mean is to you and how he acts mean with you.",
+    "t_ms": 166200,
+    "t_end_ms": 177400,
+    "source": "original"
+  },
+  {
+    "line": 19,
+    "speaker": "parent",
+    "text": "Dave is not mean and enjoys his time with Jill",
+    "t_ms": 178600,
+    "t_end_ms": 183000,
+    "source": "original"
+  },
+  {
+    "line": 20,
+    "speaker": "child",
+    "text": "I don't know, he just scares me.",
+    "t_ms": 184200,
+    "t_end_ms": 187400,
+    "source": "original"
+  },
+  {
+    "line": 21,
+    "speaker": "worker",
+    "text": "Jill, you said he scares you. Can you tell me about a time you felt scared?",
+    "t_ms": 188600,
+    "t_end_ms": 195400,
+    "source": "added"
+  },
+  {
+    "line": 22,
+    "speaker": "child",
+    "text": "When he yells.",
+    "t_ms": 196600,
+    "t_end_ms": 198200,
+    "source": "added"
+  },
+  {
+    "line": 23,
+    "speaker": "parent",
+    "text": "Please leave now, I am to upset to continue.",
+    "t_ms": 199400,
+    "t_end_ms": 203400,
+    "source": "original"
+  }
+]

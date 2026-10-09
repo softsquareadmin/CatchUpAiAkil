@@ -1,0 +1,83 @@
+/* Design tokens (M12): every colour, size and radius the pages use. Status colours match the HTML report
+   (app/export.py); status is never shown by colour alone (icon + text label everywhere).
+   Text/background pairs are checked by tests/check_ui_basics.py (WCAG AA: 4.5:1 for text). */
+:root {
+  color-scheme: light;
+  /* surfaces and text */
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+  --ink: #15233f;
+  --ink-2: #3a4864;
+  --muted: #56627a;
+  --line: #d5dce7;
+  --line-strong: #8793a6;
+  /* brand / action */
+  --accent: #1a56c4;
+  --accent-ink: #ffffff;
+  --accent-soft: #e6eefc;
+  --accent-soft-ink: #163f8f;
+  /* status: covered / partial / not covered / required follow-up / flag */
+  --ok: #17733a;
+  --ok-soft: #e1f3e7;
+  --ok-bar: #23a455;
+  --warn: #7c5100;
+  --warn-soft: #fff1d1;
+  --warn-bar: #b88200;
+  --neutral: #4f5b6e;
+  --neutral-soft: #eceff4;
+  --neutral-bar: #838fa3;
+  --danger: #a8231c;
+  --danger-soft: #fde6e4;
+  --danger-ink: #ffffff;
+  --flag: #6a3596;
+  --flag-soft: #f2e8fa;
+  /* focus */
+  --focus: 0 0 0 3px #ffffff, 0 0 0 6px #1a56c4;
+  /* spacing scale */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  /* type scale */
+  --t-xs: 13px; --t-sm: 15px; --t-md: 17px; --t-lg: 20px; --t-xl: 26px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* shape and depth */
+  --r-sm: 6px; --r: 10px; --r-lg: 14px; --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(21, 35, 63, .08), 0 1px 1px rgba(21, 35, 63, .04);
+  --shadow-2: 0 8px 28px rgba(21, 35, 63, .18);
+  /* touch */
+  --target: 44px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0f1522;
+    --surface: #172030;
+    --surface-2: #1f2a3d;
+    --ink: #e8eef8;
+    --ink-2: #c3cede;
+    --muted: #a3b0c6;
+    --line: #2e3b52;
+    --line-strong: #66789a;
+    --accent: #7fb0ff;
+    --accent-ink: #0f1522;
+    --accent-soft: #1d2f52;
+    --accent-soft-ink: #b9d3ff;
+    --ok: #6fd69a;
+    --ok-soft: #173826;
+    --ok-bar: #3fbf73;
+    --warn: #f4c46a;
+    --warn-soft: #3a2c10;
+    --warn-bar: #e0a100;
+    --neutral: #b3bdcc;
+    --neutral-soft: #263247;
+    --neutral-bar: #6c7a90;
+    --danger: #ff9a92;
+    --danger-soft: #3d1a1a;
+    --danger-ink: #0f1522;
+    --flag: #d3a6f5;
+    --flag-soft: #2f2042;
+    --focus: 0 0 0 3px #0f1522, 0 0 0 6px #7fb0ff;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow-2: 0 8px 28px rgba(0, 0, 0, .55);
+  }
+}

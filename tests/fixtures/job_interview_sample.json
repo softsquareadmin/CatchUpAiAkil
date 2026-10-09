@@ -1,0 +1,74 @@
+[
+ {
+  "speaker": "interviewer",
+  "text": "Thanks for coming in today. Could you start by telling me where you studied and what you have done since?",
+  "t_ms": 1000,
+  "t_end_ms": 8600
+ },
+ {
+  "speaker": "candidate",
+  "text": "Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.",
+  "t_ms": 9800,
+  "t_end_ms": 20060
+ },
+ {
+  "speaker": "interviewer",
+  "text": "What kind of work did you do at the consultancy?",
+  "t_ms": 21260,
+  "t_end_ms": 25060
+ },
+ {
+  "speaker": "candidate",
+  "text": "Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.",
+  "t_ms": 26260,
+  "t_end_ms": 33860
+ },
+ {
+  "speaker": "interviewer",
+  "text": "Where do you see your career going over the next several years?",
+  "t_ms": 35060,
+  "t_end_ms": 39620
+ },
+ {
+  "speaker": "candidate",
+  "text": "I'd like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.",
+  "t_ms": 40820,
+  "t_end_ms": 47660
+ },
+ {
+  "speaker": "interviewer",
+  "text": "Tell me about a hard problem you had to solve.",
+  "t_ms": 48860,
+  "t_end_ms": 52660
+ },
+ {
+  "speaker": "candidate",
+  "text": "The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.",
+  "t_ms": 53860,
+  "t_end_ms": 62600
+ },
+ {
+  "speaker": "interviewer",
+  "text": "What changed after that?",
+  "t_ms": 63800,
+  "t_end_ms": 65320
+ },
+ {
+  "speaker": "candidate",
+  "text": "It worked, I think. Things were better afterwards.",
+  "t_ms": 66520,
+  "t_end_ms": 69560
+ },
+ {
+  "speaker": "interviewer",
+  "text": "Have you ever led a team?",
+  "t_ms": 70760,
+  "t_end_ms": 73040
+ },
+ {
+  "speaker": "candidate",
+  "text": "Not formally. I sometimes coordinated the two interns on the migration.",
+  "t_ms": 74240,
+  "t_end_ms": 78420
+ }
+]

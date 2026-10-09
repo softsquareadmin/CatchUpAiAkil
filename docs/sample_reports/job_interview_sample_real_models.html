@@ -1,0 +1,156 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Job interview report 20261008-170131-820c</title><style>
+:root{--bg:#fff;--fg:#15285a;--muted:#5d6f94;--line:#dde6f4;--panel:#f7f9fd;--accent:#087bff;--track:#eaf0f8;
+--cov:#08a353;--cov-bg:#dff9eb;--par:#a35f00;--par-bg:#fff0d7;--not:#c8102e;--not-bg:#ffe5eb;--mark:#7a4d00;--mark-bg:#fff1d6}
+@media (prefers-color-scheme:dark){:root{--bg:#10151f;--fg:#e6ecf7;--muted:#9fb0cf;--line:#2c3850;--panel:#171e2b;
+--accent:#5aa6ff;--track:#2c3850;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
+--not-bg:#3d1720;--mark:#f2c879;--mark-bg:#3a2e14}}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
+font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow-wrap:anywhere}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:28px 0 10px}h3{font-size:16px;margin:0}
+h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+.meta{color:var(--muted);font-size:13px;margin:0}.meta b{color:var(--fg);font-weight:600}
+.sample{display:inline-block;background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:2px 10px;
+font-weight:700;font-size:13px;margin-bottom:8px}
+.banner{border:2px solid var(--fg);border-radius:8px;padding:10px 14px;margin:16px 0;font-weight:600}
+.omitted{color:var(--muted);font-size:13px;margin:4px 0}
+.coverage{display:flex;align-items:center;gap:28px;padding:16px;border:1px solid var(--line);border-radius:9px;
+background:var(--panel)}
+.ring{width:112px;height:112px;flex-shrink:0;padding:12px;border-radius:50%;
+background:conic-gradient(var(--accent) var(--p),var(--track) 0);transform:rotate(-90deg)}
+.ring>div{height:100%;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;
+justify-content:center;align-items:center;transform:rotate(90deg)}
+.ring strong{font-size:26px;line-height:1.2}.ring span{font-size:11px;color:var(--muted);text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex:1}
+.stat b{display:block;font-size:26px}.stat{font-size:13px;color:var(--muted)}
+.stat.covered b{color:var(--cov)}.stat.partial b{color:var(--par)}.stat.not_covered b{color:var(--not)}
+.covnote{font-size:13px;color:var(--muted);margin:8px 0 0}
+details.topic{--c:var(--muted);--cb:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);
+border-radius:8px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.topic.covered{--c:var(--cov);--cb:var(--cov-bg)}.topic.partial{--c:var(--par);--cb:var(--par-bg)}
+.topic.not_covered{--c:var(--not);--cb:var(--not-bg)}
+.topic>summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;cursor:pointer}
+.topic>summary h3{flex:1;min-width:12em}
+.sym{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+background:var(--c);color:var(--bg);font-weight:700}
+.chip{color:var(--c);background:var(--cb);border:1px solid var(--c);padding:2px 10px;border-radius:999px;
+font-size:12px;white-space:nowrap}
+.pts{font-size:13px;color:var(--muted)}
+.mark{background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:1px 8px;font-size:12px;
+font-weight:600;white-space:nowrap}
+.unrev{border:1px dashed var(--mark);border-radius:6px;padding:4px 8px}
+.tbody{padding:0 14px 12px}.empty{color:var(--muted);font-style:italic}
+.changed{font-size:13px;background:var(--panel);border-radius:6px;padding:6px 10px;margin:8px 0 0}
+ol.quotes,ul.items{margin:4px 0;padding-left:22px}ol.quotes li,ul.items li{margin:4px 0}
+q{font-style:italic}.who{color:var(--muted);font-size:12px;white-space:nowrap}
+.overall{border:2px dashed var(--mark);border-radius:9px;padding:4px 16px 12px;margin-top:28px}
+.transcript p{margin:4px 0}.transcript .who{display:inline-block;min-width:9em}
+footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+#expand{float:right;font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;
+background:var(--panel);color:var(--fg);cursor:pointer}
+@media (max-width:640px){.coverage{flex-direction:column;align-items:stretch}.ring{align-self:center}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{:root{--bg:#fff;--fg:#000;--muted:#333;--line:#999;--panel:#fff;--accent:#000;--track:#ccc;--cov:#000;
+--cov-bg:#fff;--par:#000;--par-bg:#fff;--not:#000;--not-bg:#fff;--mark:#000;--mark-bg:#fff}
+body{max-width:none;padding:0}#expand{display:none}.ring{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+details.topic::details-content{content-visibility:visible;display:block}a{color:inherit;text-decoration:none}}
+</style></head><body>
+<header><button id="expand" type="button" hidden>Expand all</button>
+<p class="sample">Sample, fictional data</p>
+<h1>Job interview</h1><p class="meta"><b>Pack</b> job_interview_v1@0.1.0 · <b>Date</b> 2026-10-08 21:01 UTC · <b>Duration</b> 1:18 · <b>Input</b> Replay</p><p class="meta"><b>Roles</b> Interviewer (user), Candidate · <b>Session</b> 20261008-170131-820c</p></header>
+<p class="banner">AI-assisted draft. Not yet reviewed by the interviewer. Not a decision.</p>
+<h2>Checklist coverage</h2><section class="coverage">
+<div class="ring" style="--p:40%"><div><strong>40%</strong><span>Checklist coverage</span></div></div>
+<div class="stats"><div class="stat covered"><b>1</b>Covered</div><div class="stat partial"><b>2</b>Partial</div><div class="stat not_covered"><b>2</b>Not covered</div><div class="stat"><b>5</b>Required topics</div></div></section>
+<p class="covnote">How much of the checklist the conversation covered (covered 100, partial 50, not covered 0, averaged over required topics). It is not a rating of anyone.</p>
+<h2>Topics</h2>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Weakness and Professional Improvement</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>A genuine professional weakness</li><li>A specific real-life example of its impact</li><li>Concrete steps taken to improve</li><li>Evidence or measurable progress</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">What is an area of your work you have found difficult, and can you give an example of how it affected a task or project? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Handling Ethical Dilemmas</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>A specific ethical dilemma or integrity issue</li><li>Competing responsibilities or considerations</li><li>Action taken</li><li>Outcome and lessons learned</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">Can you tell me about a time at work when you faced a situation where the right course of action was not clear, and what you did? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Problem-Solving and Measurable Results</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Candidate said a stock migration kept failing overnight and that they traced it to duplicate product codes and wrote a script to flag them. Asked what changed, Candidate said &quot;It worked, I think&quot; and that things were better, without giving specifics. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li></ol>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>A clear outcome or measurable result</li><li>Candidate&#x27;s specific contribution to achieving that result</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">Can you describe how you knew the migration had succeeded, and what changed in concrete terms, such as time saved, error counts or records migrated? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Leadership and Team Management</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Candidate said they have not led a team formally and that they sometimes coordinated the two interns on the migration. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>Team responsibilities in more detail</li><li>How team conflict or performance challenges were handled</li><li>Project outcome and impact</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">When you coordinated the two interns, how did you handle a time when work was not going as planned or they disagreed, and what was the result for the project? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Professional Background and Experience</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Candidate said they completed a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. Candidate said they did data cleanup and client calls and helped a retail client move stock records into a new system. Candidate said they would like to end up leading operations projects. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · <a href="#u0004">u0004</a></span></li><li><q>I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</q> <span class="who">Candidate, 0:40 · <a href="#u0006">u0006</a></span></li></ol>
+</div></details>
+<h2>Attributed summary</h2><ul class="items">
+<li class="unrev"><b>Interviewer said:</b> Interviewer asked where the candidate studied and what they have done since. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Could you start by telling me where you studied and what you have done since?</q> <span class="who">Interviewer, 0:01 · <a href="#u0001">u0001</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said they did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I did a degree in industrial engineering at Lakeside Polytechnic</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li><li><q>spent a summer at a logistics firm and a year at a small software consultancy</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said the consultancy work was mostly data cleanup and some client calls, and that they helped a retail client move stock records into a new system. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Mostly data cleanup and some client calls.</q> <span class="who">Candidate, 0:26 · <a href="#u0004">u0004</a></span></li><li><q>I helped a retail client move their stock records into a new system</q> <span class="who">Candidate, 0:26 · <a href="#u0004">u0004</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said they would like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I&#x27;d like to end up leading operations projects</q> <span class="who">Candidate, 0:40 · <a href="#u0006">u0006</a></span></li><li><q>ideally somewhere that mixes analysis with working directly with people</q> <span class="who">Candidate, 0:40 · <a href="#u0006">u0006</a></span></li></ol></li>
+<li class="unrev"><b>Interviewer said:</b> Interviewer asked the candidate to describe a hard problem they had to solve. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Tell me about a hard problem you had to solve.</q> <span class="who">Interviewer, 0:48 · <a href="#u0007">u0007</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said the stock migration kept failing overnight, that they traced it to duplicate product codes, wrote a script to flag them, and the migration was rerun. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>The stock migration kept failing overnight.</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li><li><q>I traced it to duplicate product codes, wrote a script to flag them, and we reran it</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li></ol></li>
+<li class="unrev"><b>Interviewer said:</b> Interviewer asked what changed after that. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>What changed after that?</q> <span class="who">Interviewer, 1:03 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said it worked, with the qualifier &quot;I think&quot;, and that things were better afterwards. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Interviewer said:</b> Interviewer asked whether the candidate has ever led a team. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Have you ever led a team?</q> <span class="who">Interviewer, 1:10 · <a href="#u0011">u0011</a></span></li></ol></li>
+<li class="unrev"><b>Candidate said:</b> Candidate said they have not led a team formally and that they sometimes coordinated the two interns on the migration. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol></li>
+</ul>
+<h2>Possible next steps (options for the interviewer)</h2><ul class="items">
+<li class="unrev"><b>Option:</b> Consider asking the candidate for concrete, measurable details of the migration outcome, and what part of the result they personally contributed. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li></ol><p class="who">Based on the checklist: Problem-Solving and Measurable Results (partial)</p></li>
+<li class="unrev"><b>Option:</b> The interviewer may wish to ask how the candidate handled disagreements or performance issues while coordinating the two interns, and what the project impact was. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
+<li class="unrev"><b>Option:</b> Consider asking the candidate to describe a professional weakness, an example of its impact, and the steps taken to improve. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Weakness and Professional Improvement (not covered)</p></li>
+<li class="unrev"><b>Option:</b> The interviewer may wish to ask about a workplace situation involving an ethical or integrity dilemma and how the candidate resolved it. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Handling Ethical Dilemmas (not covered)</p></li>
+</ul>
+<h2>Important Facts</h2><ul class="items">
+<li class="unrev"><b>Important Facts:</b> Candidate said they studied industrial engineering at Lakeside Polytechnic. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I did a degree in industrial engineering at Lakeside Polytechnic</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li></ol></li>
+<li class="unrev"><b>Important Facts:</b> Candidate said they spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>spent a summer at a logistics firm and a year at a small software consultancy</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li></ol></li>
+<li class="unrev"><b>Important Facts:</b> Candidate said they wrote a script to flag duplicate product codes that were causing the stock migration to fail. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I traced it to duplicate product codes, wrote a script to flag them, and we reran it</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li></ol><p class="who">Based on the checklist: Problem-Solving and Measurable Results (partial)</p></li>
+<li class="unrev"><b>Important Facts:</b> Candidate said they coordinated two interns on the migration but have not led a team formally. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
+</ul>
+<h2>Questions Not Yet Asked</h2><ul class="items">
+<li class="unrev"><b>Questions Not Yet Asked:</b> No question has yet been asked about a professional weakness, an example of its impact, steps taken to improve, or evidence of progress. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Weakness and Professional Improvement (not covered)</p></li>
+<li class="unrev"><b>Questions Not Yet Asked:</b> No question has yet been asked about an ethical dilemma or workplace integrity issue, the competing considerations, the action taken, or lessons learned. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Handling Ethical Dilemmas (not covered)</p></li>
+</ul>
+<h2>Questions Needing Clarification</h2><ul class="items">
+<li class="unrev"><b>Questions Needing Clarification:</b> The outcome of the migration fix is unclear: Candidate said &quot;It worked, I think&quot; without specifics. Suggested follow-up: &quot;What measurable difference did the fix make, and how did you confirm it?&quot; <span class="mark">Not reviewed</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li></ol><p class="who">Based on the checklist: Problem-Solving and Measurable Results (partial)</p></li>
+<li class="unrev"><b>Questions Needing Clarification:</b> The leadership answer is incomplete: it is unclear what the candidate was responsible for with the two interns, how any conflict or performance issues were handled, and what the project impact was. Suggested follow-up: &quot;What did you do when one of the interns needed direction or the work slipped, and how did the project turn out?&quot; <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
+</ul>
+<h2>Recommended Next Action</h2><ul class="items">
+<li class="unrev"><b>Recommended Next Action:</b> Consider first following up on the migration outcome and the candidate&#x27;s personal contribution, then on the intern coordination (conflict, performance, impact). Then move to the two topics not yet discussed: a professional weakness with improvement steps, and an ethical dilemma. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li><li><q>I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol><p class="who">Based on the checklist: Problem-Solving and Measurable Results (partial); Leadership and Team Management (partial); Weakness and Professional Improvement (not covered); Handling Ethical Dilemmas (not covered)</p></li>
+</ul>
+<section class="overall"><h2>Overall assessment (draft for human review) <span class="mark">Draft for human review</span></h2><ul class="items">
+<li class="unrev"><b>Strength · Professional Background and Experience:</b> Candidate gave education, two prior organizations, the type of technical and business work done, and a long-term aspiration. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>spent a summer at a logistics firm and a year at a small software consultancy</q> <span class="who">Candidate, 0:09 · <a href="#u0002">u0002</a></span></li><li><q>I&#x27;d like to end up leading operations projects</q> <span class="who">Candidate, 0:40 · <a href="#u0006">u0006</a></span></li></ol></li>
+<li class="unrev"><b>Strength · Problem-Solving and Measurable Results:</b> Candidate described a specific challenge and the actions they personally took to diagnose and address it. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I traced it to duplicate product codes, wrote a script to flag them, and we reran it</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li></ol></li>
+<li class="unrev"><b>Gap · Problem-Solving and Measurable Results:</b> The outcome was stated without measurable detail or a clear statement of the candidate&#x27;s contribution to it. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li></ol><p class="who">Based on the checklist: Problem-Solving and Measurable Results (partial)</p></li>
+<li class="unrev"><b>Gap · Leadership and Team Management:</b> Only informal coordination of two interns was described; no conflict or performance handling or project impact was given. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
+<li class="unrev"><b>Gap · Weakness and Professional Improvement:</b> This topic has not been discussed. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Weakness and Professional Improvement (not covered)</p></li>
+<li class="unrev"><b>Gap · Handling Ethical Dilemmas:</b> This topic has not been discussed. <span class="mark">Not reviewed</span><p class="who">Based on the checklist: Handling Ethical Dilemmas (not covered)</p></li>
+<li class="unrev"><b>Overall assessment (draft for human review):</b> Draft for the interviewer to verify: Candidate gave a clear account of their background and a specific technical problem with the actions they took. The outcome of that problem and the leadership example remain thin, and the weakness and ethical dilemma topics were not covered, so the interviewer may wish to follow up before forming a view. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I traced it to duplicate product codes, wrote a script to flag them, and we reran it</q> <span class="who">Candidate, 0:53 · <a href="#u0008">u0008</a></span></li><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · <a href="#u0010">u0010</a></span></li><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · <a href="#u0012">u0012</a></span></li></ol></li>
+</ul></section>
+<h2>Transcript</h2><section class="transcript">
+<p id="u0001"><span class="who">0:01 Interviewer</span> Thanks for coming in today. Could you start by telling me where you studied and what you have done since?</p>
+<p id="u0002"><span class="who">0:09 Candidate</span> Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</p>
+<p id="u0003"><span class="who">0:21 Interviewer</span> What kind of work did you do at the consultancy?</p>
+<p id="u0004"><span class="who">0:26 Candidate</span> Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</p>
+<p id="u0005"><span class="who">0:35 Interviewer</span> Where do you see your career going over the next several years?</p>
+<p id="u0006"><span class="who">0:40 Candidate</span> I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</p>
+<p id="u0007"><span class="who">0:48 Interviewer</span> Tell me about a hard problem you had to solve.</p>
+<p id="u0008"><span class="who">0:53 Candidate</span> The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.</p>
+<p id="u0009"><span class="who">1:03 Interviewer</span> What changed after that?</p>
+<p id="u0010"><span class="who">1:06 Candidate</span> It worked, I think. Things were better afterwards.</p>
+<p id="u0011"><span class="who">1:10 Interviewer</span> Have you ever led a team?</p>
+<p id="u0012"><span class="who">1:14 Candidate</span> Not formally. I sometimes coordinated the two interns on the migration.</p>
+</section>
+<footer><p>Models: gate: openrouter:google/gemini-3.8-flash · cue: openrouter:google/gemini-3.8-flash · review: openrouter:anthropic/claude-sonnet-5.5. Generated on 2026-10-08. Model cost for this session: $0.0951.</p><p>This tool listens to an interview, tracks which checklist topics were covered and suggests follow-up questions. It does not judge credibility, make findings or decide anything; a person reviews every item.</p></footer><script>(function(){var b=document.getElementById('expand');b.hidden=false;var d=document.querySelectorAll('details.topic');b.onclick=function(){var o=[].some.call(d,function(x){return !x.open});[].forEach.call(d,function(x){x.open=o});b.textContent=o?'Collapse all':'Expand all'};window.addEventListener('beforeprint',function(){[].forEach.call(d,function(x){x.open=true})})})();</script></body></html>

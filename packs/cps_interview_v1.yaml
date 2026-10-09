@@ -1,0 +1,143 @@
+# Working topic list (SPEC 4). Replace with John Smith's approved list when provided.
+id: cps_interview_v1
+version: "0.1.1"   # 0.1.1 (M7): roles, guardrails and special topics moved in from code; definitions unchanged
+roles:
+  - {id: worker, label: Worker, kind: user, aliases: [worker, caseworker, cps, interviewer]}
+  - {id: parent, label: Parent, kind: subject, aliases: [parent, mom, mother, dad, father, guardian]}
+  - {id: child, label: Child, kind: subject, aliases: [child, kid]}
+persona: >
+  You assist a child welfare (CPS) caseworker during and after an interview with a parent
+  and a child. You assist; you never decide. You never judge credibility and never state or
+  imply whether abuse or maltreatment occurred.
+
+checklist:
+  - id: recording_consent
+    label: Consent to recording
+    definition: Both the parent and the child have been asked and have agreed to the interview being recorded or transcribed.
+    required: true
+  - id: child_age_grade
+    label: Child's age and grade
+    definition: The child's age and current school grade have both been stated.
+    required: true
+  - id: parent_account
+    label: Parent's account of injury
+    definition: The parent has described how, when and where the child was hurt, in their own words.
+    required: true
+  - id: child_account
+    label: Child's account of injury
+    definition: The child has described how, when and where she was hurt, in her own words.
+    required: true
+  - id: household_members
+    label: Household members
+    definition: Every person who lives in the household has been named, with their relationship to the child.
+    required: true
+  - id: caregivers
+    label: Caregivers while parent works
+    definition: The people who care for the child while the parent works have been named, with when they provide care.
+    required: true
+  - id: child_safety_feelings
+    label: Child's feelings of safety
+    definition: The child has described, in her own words, whether and why she feels safe or unsafe at home.
+    required: true
+  - id: medical_attention
+    label: Medical attention for injury
+    definition: It has been stated whether medical attention was sought for the injury and, if so, where and when.
+    required: true
+  - id: prior_injuries
+    label: Prior injuries or concerns
+    definition: The worker has asked about earlier injuries or concerns and the answer has been given.
+    required: true
+  - id: other_contacts
+    label: Other people to contact
+    definition: Other people who may have relevant information, such as school staff, have been named.
+    required: true
+  - id: safety_plan
+    label: Safety plan and next steps
+    definition: The worker has explained the safety plan and next steps to the family.
+    required: true
+
+guardrails:
+  prompt_rules:
+    - Never state or imply whether abuse, maltreatment or neglect occurred.
+  # Was the HARM / JUDGE_QUESTION / JUDGE_NOTE lists in app/cues.py (moved unchanged, M7).
+  follow_up_required_when: >-
+    statements contradict each other, or the child mentions feeling afraid or unsafe without saying why or when
+  question_lint:
+    open_ended_only: true
+    blocked_terms: [lie, lies, lied, lying, liar, "credib*", believable, truthful, truth, "honest*",
+                    made it up, made that up, made this up, making it up, making that up, making this up,
+                    "exaggerat*", "maltreat*", "abus*", "neglect*",
+                    # placement and custody are decisions for the agency, never a question's premise (M7)
+                    foster care, removed from the home, removed from home, "custody"]
+    act_terms: [hit, hits, hitting, beat, beats, beating, "punch*", "kick*", "push*", "shov*", threw, "throw*",
+                "slap*", "grab*", "chok*", "smack*", "whip*", "spank*", "touch*", "abus*"]
+    name_with_act_rule: true
+  note_blocked_patterns:
+    - '\b(lie|lies|lied|lying|liar|credib\w*|believable|truthful|made (it|that|this) up|making (it|that|this) up|exaggerat\w*)\b'
+    - '\b(abuse|maltreatment|neglect) (occurred|happened|took place)\b'
+    - '\bwas (abused|maltreated|neglected)\b'
+    # placement and custody conclusions (M7: kept out even when the overall assessment is switched on)
+    - '\b(should|must|needs? to|ought to) be (removed|placed)\b'
+    - '\bremov(e|ed|al|ing) (\w+ )?from (the |her |his |their )?home\b'
+    - '\b(placed|placement) (in|into) (foster|kinship|out of home) care\b'
+    - '\b(should|must|will) (lose|keep|get|be given) custody\b'
+  allow_overall_recommendation: false   # owner decision 2026-10-08: may be switched on for testing; log it
+  overall_assessment_instruction: >-
+    Word the overall assessment as options for the worker to consider, never as a verdict. Never state or imply
+    whether abuse, maltreatment or neglect occurred, who is credible, or what should happen to the child's
+    placement or custody.
+
+special_topics:
+  consent_topic: recording_consent        # consent refusal raises the stop prompt
+  audience_hint_topic: child_age_grade    # the child's age and grade, as said, for the cue writer
+  audience_hint_instruction: >-
+    If the question is for the child, word it for the child's age given in <audience>: one short sentence with
+    simple, everyday words. If the age is unknown, use simple words.
+
+form_schema:
+  - id: child_age
+    label: Child age
+    type: number
+    source_topic_ids: [child_age_grade]
+  - id: child_grade
+    label: Child school grade
+    type: text
+    source_topic_ids: [child_age_grade]
+  - id: household_members
+    label: Household members
+    type: text
+    source_topic_ids: [household_members]
+  - id: caregivers
+    label: Caregivers
+    type: text
+    source_topic_ids: [caregivers]
+  - id: injury_description_as_reported
+    label: Injury description as reported
+    type: text
+    source_topic_ids: [parent_account, child_account]
+  - id: medical_attention
+    label: Medical attention sought
+    type: choice
+    choices: ["yes", "no", "not stated"]
+    source_topic_ids: [medical_attention]
+  - id: other_contacts
+    label: Other contacts
+    type: text
+    source_topic_ids: [other_contacts]
+
+live_prompts:
+  gate: >
+    Update the interview checklist from the latest utterances. Return only deltas. A topic is
+    "covered" only when its definition is fully met by a quoted statement. Every update needs
+    an evidence quote copied exactly from the transcript.
+  cue: >
+    Write one open-ended, non-leading follow-up question the worker could ask in their own
+    words. Never name a person as the cause unless the speaker has. Never put an answer in the
+    child's mouth. Never judge credibility or state whether abuse occurred.
+
+final_prompts:
+  review: >
+    Review the whole interview. Write an attributed summary as reports ("Mom said...",
+    "Jill said...") with no conclusions. List topics not or only partly covered, statements
+    flagged for follow-up, proposed form field values with evidence, and next steps worded as
+    options for the worker, never as findings.

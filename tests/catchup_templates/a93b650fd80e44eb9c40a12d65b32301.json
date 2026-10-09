@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "id": "a93b650fd80e44eb9c40a12d65b32301",
+  "name": "Interview",
+  "config": {
+    "conversation": {
+      "purpose": "Track the interview against its goals, capture the candidate’s experience and skills, and identify important topics that remain unanswered or need clarification. Suggest follow-up questions to help the interviewer assess the candidate’s suitability for the role.",
+      "pay_attention_to": [
+        "Relevant experience and technical skills",
+        "Personal contributions and project outcomes",
+        "Problem-solving approach and decision-making",
+        "Communication, teamwork, and ownership",
+        "Specific examples supporting the candidate’s claims",
+        "Vague, incomplete, or inconsistent answers",
+        "Important interview questions missed or left unanswered"
+      ],
+      "topics_to_cover": [
+        {
+          "id": "topic_f7ec73e9ca0243d5897cf59cfe973e56",
+          "label": "Professional Background and Experience",
+          "criteria": [
+            "Candidate's educational background and university",
+            "At least two previous internships or organizations",
+            "Technical and business experience",
+            "Long-term career aspiration"
+          ]
+        },
+        {
+          "id": "topic_c2ed3467bbdd49f4bfa2820af545e3c6",
+          "label": "Problem-Solving and Measurable Results",
+          "criteria": [
+            "A specific difficult problem or challenge",
+            "Actions personally taken to solve the problem",
+            "A clear outcome or measurable result",
+            "Candidate's contribution to achieving that result"
+          ]
+        },
+        {
+          "id": "topic_9eff5f95df4046259340db560ff750a3",
+          "label": "Leadership and Team Management",
+          "criteria": [
+            "A specific leadership experience",
+            "Team size and responsibilities",
+            "How the candidate handled team conflict or performance challenges",
+            "Project outcome and impact"
+          ]
+        },
+        {
+          "id": "topic_1588f43cc2be40818784009c4276ea73",
+          "label": "Weakness and Professional Improvement",
+          "criteria": [
+            "Candidate identifies a genuine professional weakness",
+            "Provides a specific real-life example of its impact",
+            "Explains concrete steps taken to improve",
+            "Provides evidence or measurable progress demonstrating improvement"
+          ]
+        },
+        {
+          "id": "topic_d8dd6cb8e85f4073a6af0b76ca4ceff3",
+          "label": "Handling Ethical Dilemmas",
+          "criteria": [
+            "A specific ethical dilemma or workplace integrity issue",
+            "Competing responsibilities or ethical considerations",
+            "Action taken to resolve the situation",
+            "Outcome and lessons learned"
+          ]
+        }
+      ],
+      "speakers": [
+        {
+          "id": "speaker_1",
+          "role": "Interviewer"
+        },
+        {
+          "id": "speaker_2",
+          "role": "Candidate"
+        }
+      ]
+    },
+    "report": {
+      "sections": [
+        {
+          "label": "Summary",
+          "type": "text",
+          "instruction": "Summarize the conversation heard so far.",
+          "required": true,
+          "id": "summary"
+        },
+        {
+          "label": "Important Facts",
+          "type": "list",
+          "instruction": "List important facts explicitly learned during the conversation.",
+          "required": true,
+          "id": "important_facts"
+        },
+        {
+          "label": "Questions Not Yet Asked",
+          "type": "list",
+          "instruction": "Compare the important questions and information to cover in the configured Pay attention to focus areas against the conversation so far. List questions that have not yet been asked and whose answers have not otherwise been provided. Treat information volunteered by a participant as covered. Do not invent a required question checklist when none is configured; return an empty list when no uncovered configured questions remain.",
+          "required": true,
+          "id": "questions_not_yet_asked"
+        },
+        {
+          "label": "Questions Needing Clarification",
+          "type": "list",
+          "instruction": "List important questions that were asked but received no answer, a vague answer, or an incomplete answer, including questions the interviewer moved away from before obtaining a clear response. For each item, explain what remains unclear and suggest a specific follow-up question. Consider later answers in the conversation so far and exclude questions that have since been clearly answered. Return an empty list when none need clarification.",
+          "required": true,
+          "id": "questions_needing_clarification"
+        },
+        {
+          "label": "Recommended Next Action",
+          "type": "text",
+          "instruction": "Suggest a useful next action grounded in the conversation.",
+          "required": true,
+          "id": "recommended_next_action"
+        }
+      ]
+    }
+  }
+}

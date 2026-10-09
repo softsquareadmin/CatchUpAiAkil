@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configuration · Interview Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231a56c4%22/%3E%3Cpath fill=%22white%22 d=%22M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5.5a6.5 6.5 0 0 0 5.75 6.45V20h1.5v-2.55A6.5 6.5 0 0 0 18.5 11z%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/pages.css">
+</head>
+<body>
+  <a class="skip" href="#cfgForm">Skip to the form</a>
+  <header id="appbar" class="appbar"></header>
+  <main class="page">
+    <div class="page-head">
+      <h1>Configure an interview type</h1>
+      <label class="inline-field">Pack <select id="cfgPack"></select></label>
+      <button id="cfgEdit" type="button" class="btn-primary">Edit</button>
+      <label class="btn file-pick">Import CatchUp template<input id="cfgImport" type="file" accept=".json,application/json"></label>
+    </div>
+    <p id="cfgNote" class="hint"></p>
+    <ul id="cfgWarnings" class="warnings" hidden></ul>
+    <ul id="cfgProblems" class="problems" role="alert" hidden></ul>
+    <div id="cfgForm"></div>
+
+    <section class="card cfg-block" aria-labelledby="testHeading">
+      <h2 id="testHeading">Test this template</h2>
+      <p class="hint">Replays a sample transcript at instant speed with this template (your unsaved edits included)
+        and shows the checklist it produces. Offline models are free; real models cost money and ask first.</p>
+      <div class="cfg-row" style="margin-top:12px">
+        <label class="inline-field">Sample <select id="cfgScript"></select></label>
+        <button id="cfgTestFake" type="button" class="btn-primary">Run offline (free)</button>
+        <button id="cfgTestReal" type="button">Run with real models</button>
+      </div>
+      <div id="cfgResult" aria-live="polite"></div>
+    </section>
+
+    <section id="cfgSaveBox" class="card cfg-block" aria-labelledby="saveHeading" hidden>
+      <h2 id="saveHeading">Save</h2>
+      <p class="hint">Saving always writes a new file with a new version. The original stays as it is, and a running
+        interview keeps the version it started with.</p>
+      <div class="cfg-row" style="margin-top:12px">
+        <label class="inline-field">Version <input id="cfgVersion" size="10"></label>
+        <button id="cfgSave" type="button" class="btn-primary">Save as new version</button>
+        <span id="cfgSaveMsg" role="status"></span>
+      </div>
+    </section>
+  </main>
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/config.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Tiny test pack (M7 acceptance): 2 topics, 2 roles named differently, tier 1 only, no special topics,
+# no guardrails block. Must run end to end offline with no code change.
+id: tiny_club_intake
+version: "0.1.0"
+pack_format: 2
+name: Garden club intake
+purpose: >
+  A volunteer coordinator talks to a new member of a community garden. Note what they grow and when they can help.
+roles:
+  - {id: host, label: Coordinator, kind: user}
+  - {id: guest, label: New member, kind: subject}
+sample_script: tests/fixtures/tiny_sample.json
+checklist:
+  - label: Plants grown
+    criteria:
+      - Which plants the member grows
+  - label: Availability
+    criteria:
+      - How often the member can help
+      - Which days suit them
+    follow_up_when: The member gives no days or times at all

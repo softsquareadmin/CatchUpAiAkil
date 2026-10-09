@@ -1,0 +1,30 @@
+models:                       # "provider:model" per role; IDs from docs/provider-notes.md
+  stt:    assemblyai:universal-3-6-pro   # or universal-streaming-english (cheaper); docs/provider-notes.md
+  gate:   openrouter:google/gemini-3.8-flash   # "fake:keyword" = offline demo gate, no key or cost
+  cue:    openrouter:google/gemini-3.8-flash   # owner 2026-10-08 (Haiku 5.5 compared: 3/5 invalid JSON)
+  review: openrouter:anthropic/claude-sonnet-5.5
+gate_adapter: llm             # llm | hybrid (Jev's fast "topic came up" + the gate model for everything) | jev (experiment)
+hybrid_min_confidence: 0.9    # hybrid: Jev marks a topic partial early only at or above this confidence
+gate_prompt: full             # full | short (llm gate only: shorter input, terser output)
+gate_temperature: null        # null = provider default. Google recommends 1.0 for Gemini 3 (lower can loop)
+jev_model: typesafe/jev-1.13
+jev_min_probability: 0.6      # jev gate: a status change needs at least this probability
+jev_questions: choice         # choice (one 4-option question per topic) | yesno (3 yes/no per topic) | atomic (6 single-condition yes/no per topic)
+jev_followup_probability: 0.6 # yesno/atomic: probability needed to mark needs_follow_up
+experiment_label: default
+window_utterances: 12
+cue_cooldown_seconds: 60
+cue_hold_suggested: true      # suggested cards wait for the end of the answer: the interviewer's next line, or ...
+cue_hold_s: 4                 # ... this many seconds without a new line. Required cards never wait
+cue_reasoning_effort: minimal   # cue writer; null = not sent (e.g. for Claude models)
+stt_speaker_labels: true      # AssemblyAI streaming diarization (+$0.12/hr); the worker maps A/B/C to speakers
+stt_max_speakers: 3
+stt_split_turns: true         # a turn holding two speakers is split where the word-level labels change
+store_audio: false
+max_session_cost_usd: 1.00
+limits:                       # provider rate limits (M10a); see docs/provider-notes.md
+  requests_per_min:           # per model; "provider" = default for its models, "provider:model" overrides; 0 = none
+    openrouter: 18            # new accounts observed at 20/min per model (2026-10-08); owner to confirm
+  deadline_s: {gate: 8, cue: 8, review: 60, batch: 60}   # live roles give up fast; batch = tests and evaluations
+  max_attempts: 4
+pack: packs/cps_interview_v2.yaml   # v1 kept for comparison

@@ -1,0 +1,210 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPS interview (parent and child) report 20261008-162858-3490</title><style>
+:root{--bg:#fff;--fg:#15285a;--muted:#5d6f94;--line:#dde6f4;--panel:#f7f9fd;--accent:#087bff;--track:#eaf0f8;
+--cov:#08a353;--cov-bg:#dff9eb;--par:#a35f00;--par-bg:#fff0d7;--not:#c8102e;--not-bg:#ffe5eb;--mark:#7a4d00;--mark-bg:#fff1d6}
+@media (prefers-color-scheme:dark){:root{--bg:#10151f;--fg:#e6ecf7;--muted:#9fb0cf;--line:#2c3850;--panel:#171e2b;
+--accent:#5aa6ff;--track:#2c3850;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
+--not-bg:#3d1720;--mark:#f2c879;--mark-bg:#3a2e14}}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
+font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow-wrap:anywhere}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:28px 0 10px}h3{font-size:16px;margin:0}
+h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+.meta{color:var(--muted);font-size:13px;margin:0}.meta b{color:var(--fg);font-weight:600}
+.sample{display:inline-block;background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:2px 10px;
+font-weight:700;font-size:13px;margin-bottom:8px}
+.banner{border:2px solid var(--fg);border-radius:8px;padding:10px 14px;margin:16px 0;font-weight:600}
+.omitted{color:var(--muted);font-size:13px;margin:4px 0}
+.coverage{display:flex;align-items:center;gap:28px;padding:16px;border:1px solid var(--line);border-radius:9px;
+background:var(--panel)}
+.ring{width:112px;height:112px;flex-shrink:0;padding:12px;border-radius:50%;
+background:conic-gradient(var(--accent) var(--p),var(--track) 0);transform:rotate(-90deg)}
+.ring>div{height:100%;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;
+justify-content:center;align-items:center;transform:rotate(90deg)}
+.ring strong{font-size:26px;line-height:1.2}.ring span{font-size:11px;color:var(--muted);text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex:1}
+.stat b{display:block;font-size:26px}.stat{font-size:13px;color:var(--muted)}
+.stat.covered b{color:var(--cov)}.stat.partial b{color:var(--par)}.stat.not_covered b{color:var(--not)}
+.covnote{font-size:13px;color:var(--muted);margin:8px 0 0}
+details.topic{--c:var(--muted);--cb:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);
+border-radius:8px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.topic.covered{--c:var(--cov);--cb:var(--cov-bg)}.topic.partial{--c:var(--par);--cb:var(--par-bg)}
+.topic.not_covered{--c:var(--not);--cb:var(--not-bg)}
+.topic>summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;cursor:pointer}
+.topic>summary h3{flex:1;min-width:12em}
+.sym{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+background:var(--c);color:var(--bg);font-weight:700}
+.chip{color:var(--c);background:var(--cb);border:1px solid var(--c);padding:2px 10px;border-radius:999px;
+font-size:12px;white-space:nowrap}
+.pts{font-size:13px;color:var(--muted)}
+.mark{background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:1px 8px;font-size:12px;
+font-weight:600;white-space:nowrap}
+.unrev{border:1px dashed var(--mark);border-radius:6px;padding:4px 8px}
+.tbody{padding:0 14px 12px}.empty{color:var(--muted);font-style:italic}
+.changed{font-size:13px;background:var(--panel);border-radius:6px;padding:6px 10px;margin:8px 0 0}
+ol.quotes,ul.items{margin:4px 0;padding-left:22px}ol.quotes li,ul.items li{margin:4px 0}
+q{font-style:italic}.who{color:var(--muted);font-size:12px;white-space:nowrap}
+.overall{border:2px dashed var(--mark);border-radius:9px;padding:4px 16px 12px;margin-top:28px}
+.transcript p{margin:4px 0}.transcript .who{display:inline-block;min-width:9em}
+footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+#expand{float:right;font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;
+background:var(--panel);color:var(--fg);cursor:pointer}
+@media (max-width:640px){.coverage{flex-direction:column;align-items:stretch}.ring{align-self:center}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{:root{--bg:#fff;--fg:#000;--muted:#333;--line:#999;--panel:#fff;--accent:#000;--track:#ccc;--cov:#000;
+--cov-bg:#fff;--par:#000;--par-bg:#fff;--not:#000;--not-bg:#fff;--mark:#000;--mark-bg:#fff}
+body{max-width:none;padding:0}#expand{display:none}.ring{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+details.topic::details-content{content-visibility:visible;display:block}a{color:inherit;text-decoration:none}}
+</style></head><body>
+<header><button id="expand" type="button" hidden>Expand all</button>
+<p class="sample">Sample, fictional data</p>
+<h1>CPS interview (parent and child)</h1><p class="meta"><b>Pack</b> cps_interview_v2@0.4.0 · <b>Date</b> 2026-10-08 20:28 UTC · <b>Duration</b> 3:23 · <b>Input</b> Replay</p><p class="meta"><b>Roles</b> Worker (user), Parent, Child · <b>Session</b> 20261008-162858-3490</p></header>
+<p class="banner">AI-assisted draft. Not yet reviewed by the worker. Not a decision.</p>
+<h2>Checklist coverage</h2><section class="coverage">
+<div class="ring" style="--p:68%"><div><strong>68%</strong><span>Checklist coverage</span></div></div>
+<div class="stats"><div class="stat covered"><b>7</b>Covered</div><div class="stat partial"><b>1</b>Partial</div><div class="stat not_covered"><b>3</b>Not covered</div><div class="stat"><b>11</b>Required topics</div></div></section>
+<p class="covnote">How much of the checklist the conversation covered (covered 100, partial 50, not covered 0, averaged over required topics). It is not a rating of anyone.</p>
+<h2>Topics</h2>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Prior or other injuries</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>worker&#x27;s question about earlier injuries or concerns</li><li>worker&#x27;s question about other injuries or marks now</li><li>parent&#x27;s answer</li><li>child&#x27;s answer</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">Can you tell me about any other injuries or marks Jill has had, now or before? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Other people to contact</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>a person outside the home with a name plus a role or place</li><li>a school contact</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">Who outside your home, such as someone at Jill&#x27;s school, knows Jill well and could talk with us? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Safety plan and next steps</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">No explanation of next steps or a safety plan appears in the transcript. Parent said &quot;Please leave now, I am to upset to continue.&quot; <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Please leave now, I am to upset to continue.</q> <span class="who">Parent, 3:19 · <a href="#u0023">u0023</a></span></li></ol>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>worker&#x27;s explanation of what happens next</li><li>any safety plan</li><li>family acknowledgement</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">What questions do you have about what happens next? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Child&#x27;s account of injury</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Jill said she does not remember what happened. She said Dave is sometimes mean and that he said he does not think he should be responsible for her when Mom is working. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>He said he does not think he should be responsible for me when Mom is working.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>what happened</li><li>where it happened</li><li>who was there</li><li>when it happened</li></ul>
+<h4>Suggested follow-up</h4><p class="unrev">What can you tell me about the day you got the mark near your eye? <span class="mark">Not reviewed</span></p>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Consent to recording</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Parent said the worker may use the recording tool and said &quot;I consent&quot;. Child said &quot;I consent&quot;. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Yes, you may use that tool.</q> <span class="who">Parent, 0:24 · <a href="#u0003">u0003</a></span></li><li><q>I consent</q> <span class="who">Parent, 0:37 · <a href="#u0005">u0005</a></span></li><li><q>I consent</q> <span class="who">Child, 0:40 · <a href="#u0006">u0006</a></span></li></ol>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Child&#x27;s age and grade</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Jill said she is seven and in second grade. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>I&#x27;m seven. I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · <a href="#u0008">u0008</a></span></li></ol>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Parent&#x27;s account of injury</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Parent said Jill told her she fell and hit her face, and that Jill said she tripped on the stairs at the house. Parent said she saw the bruise Tuesday night when she got home from work and that Dave was in the garage working on his truck. Parent did not say when the injury happened. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>I saw it Tuesday night when I got home from work. She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li><li><q>he was out in the garage working on his truck, he didn&#x27;t see anything</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol>
+<h4>Still missing <span class="mark">Not reviewed</span></h4><ul class="items" class="unrev"><li>when the injury happened</li></ul>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Household members</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Parent said Dave Mercer is her boyfriend and lives in the home. Parent and Jill took part in the interview. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave is my boyfriend and lives here. His name is Dave Mercer</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Caregivers while parent works</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Parent said Dave was at the house while she was at work and that he is there most days. The report, as read by the worker, names Dave as often Jill&#x27;s caregiver. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li><li><q>this man is often her caregiver</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Child&#x27;s feelings of safety</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Jill said she is afraid of Dave and that he scares her. Asked about a time she felt scared, she said &quot;When he yells.&quot; Parent said Dave is not mean and enjoys his time with Jill. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave is sometime mean and I am afraid of him.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>he just scares me</q> <span class="who">Child, 3:04 · <a href="#u0020">u0020</a></span></li><li><q>When he yells.</q> <span class="who">Child, 3:16 · <a href="#u0022">u0022</a></span></li></ol>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Medical attention for injury</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="unrev">Parent said Jill was not seen by a doctor or nurse and gave a reason: she said it is just a bruise and did not seem that bad. Jill did not speak to this. <span class="mark">Not reviewed</span></p>
+<h4>Quotes</h4><ol class="quotes"><li><q>No, it&#x27;s just a bruise. It didn&#x27;t seem that bad.</q> <span class="who">Parent, 2:26 · <a href="#u0016">u0016</a></span></li></ol>
+</div></details>
+<h2>Attributed summary</h2><ul class="items">
+<li class="unrev"><b>Worker said:</b> The worker read out the report: it says Jill came to school with a black eye, and that a man named Dave, who she was left with while Mom worked, hit her in the eye with a cup he threw at her. The report also says Jill said this man is often her caregiver and often gets angry and hits her with objects. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill came to school with a black eye</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>hit her in the eye with a cup he threw at her</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>often gets angry and hits her with objects</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>Child said:</b> Jill said she is seven and in second grade. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I&#x27;m seven. I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · <a href="#u0008">u0008</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said Dave Mercer is her boyfriend and lives in the home, and that he is not abusive to anyone. She said she is having a hard time believing the report. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>he is not abusive at all to anyone</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>I just am having a hard time believing it.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said Jill told her she fell and hit her face, and that is what caused the bruising. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said she saw the bruise Tuesday night when she got home from work, and that Jill said she tripped on the stairs at the house. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I saw it Tuesday night when I got home from work.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said Dave was at the house, is there most days, and was in the garage working on his truck and did not see anything. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li><li><q>he didn&#x27;t see anything</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said Jill was not seen by a doctor or nurse, and that it is just a bruise that did not seem that bad. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>No, it&#x27;s just a bruise. It didn&#x27;t seem that bad.</q> <span class="who">Parent, 2:26 · <a href="#u0016">u0016</a></span></li></ol></li>
+<li class="unrev"><b>Child said:</b> Jill said she does not remember what happened. She said Dave is sometimes mean and she is afraid of him, and that he said he does not think he should be responsible for her when Mom is working. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>I am afraid of him</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>He said he does not think he should be responsible for me when Mom is working.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom said Dave is not mean and enjoys his time with Jill. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is not mean and enjoys his time with Jill</q> <span class="who">Parent, 2:58 · <a href="#u0019">u0019</a></span></li></ol></li>
+<li class="unrev"><b>Child said:</b> Jill said she does not know what mean is, and that he just scares her. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t know, he just scares me.</q> <span class="who">Child, 3:04 · <a href="#u0020">u0020</a></span></li></ol></li>
+<li class="unrev"><b>Child said:</b> Asked about a time she felt scared, Jill said it is when he yells. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>When he yells.</q> <span class="who">Child, 3:16 · <a href="#u0022">u0022</a></span></li></ol></li>
+<li class="unrev"><b>Parent said:</b> Mom asked the worker to leave and said she is too upset to continue. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Please leave now, I am to upset to continue.</q> <span class="who">Parent, 3:19 · <a href="#u0023">u0023</a></span></li></ol></li>
+</ul>
+<h2>Form fields</h2><ul class="items">
+<li class="unrev"><b>Child age:</b> 7 <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I&#x27;m seven.</q> <span class="who">Child, 0:51 · <a href="#u0008">u0008</a></span></li></ol></li>
+<li class="unrev"><b>Child school grade:</b> second grade <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · <a href="#u0008">u0008</a></span></li></ol></li>
+<li class="unrev"><b>Household members:</b> Dave Mercer (Parent&#x27;s boyfriend, lives in the home); Parent and Jill took part in the interview <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Caregivers:</b> Dave Mercer, Parent&#x27;s boyfriend; Parent said he is at the house most days <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Injury description as reported:</b> Parent said Jill told her she fell and hit her face and tripped on the stairs at the house. Jill said she does not remember what happened. The report as read by the worker says Dave hit Jill in the eye with a cup he threw. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>hit her in the eye with a cup he threw at her</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>Medical attention sought:</b> no <span class="mark">Not reviewed</span><ol class="quotes"><li><q>No, it&#x27;s just a bruise.</q> <span class="who">Parent, 2:26 · <a href="#u0016">u0016</a></span></li></ol></li>
+</ul>
+<h2>Timeline (as reported)</h2><ul class="items">
+<li class="unrev"><b>not stated · the report:</b> Report says Jill came to school with a black eye and that Dave, who she was left with while Mom worked, hit her in the eye with a cup he threw at her. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill came to school with a black eye</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>hit her in the eye with a cup he threw at her</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>not stated · parent:</b> Parent said Jill told her she tripped on the stairs at the house. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li></ol></li>
+<li class="unrev"><b>Tuesday night · parent:</b> Parent said she first saw the bruise when she got home from work. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I saw it Tuesday night when I got home from work.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li></ol></li>
+<li class="unrev"><b>the day Parent was at work (day not stated) · parent:</b> Parent said Dave was at the house and was in the garage working on his truck while she was at work. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li><li><q>he was out in the garage working on his truck</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+<li class="unrev"><b>not stated · parent:</b> Parent said Jill was not seen by a doctor or nurse. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>No, it&#x27;s just a bruise.</q> <span class="who">Parent, 2:26 · <a href="#u0016">u0016</a></span></li></ol></li>
+<li class="unrev"><b>not stated · child:</b> Jill said she does not remember what happened. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li>
+<li class="unrev"><b>When he yells · child:</b> Jill said this is a time she feels scared of Dave. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>When he yells.</q> <span class="who">Child, 3:16 · <a href="#u0022">u0022</a></span></li></ol></li>
+</ul>
+<h2>Accounts side by side</h2><ul class="items">
+<li class="unrev"><b>How the injury happened · parent:</b> Parent said Jill told her she fell and hit her face, and tripped on the stairs at the house. Parent said Dave was in the garage and did not see anything. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li><li><q>he didn&#x27;t see anything</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+<li class="unrev"><b>How the injury happened · child:</b> Jill said she does not remember what happened. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li>
+<li class="unrev"><b>How the injury happened · the report:</b> The report, as read by the worker, says Dave hit Jill in the eye with a cup he threw at her. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>hit her in the eye with a cup he threw at her</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>Caregivers while parent works · parent:</b> Parent said Dave was at the house while she was at work and is there most days. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+<li class="unrev"><b>Caregivers while parent works · the report:</b> The report, as read by the worker, says Jill said Dave is often her caregiver. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>this man is often her caregiver</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+<li class="unrev"><b>Child&#x27;s feelings of safety · child:</b> Jill said Dave is sometimes mean and she is afraid of him; he scares her, and she said &quot;When he yells.&quot; when asked about a time she felt scared. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I am afraid of him</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li><li><q>he just scares me</q> <span class="who">Child, 3:04 · <a href="#u0020">u0020</a></span></li><li><q>When he yells.</q> <span class="who">Child, 3:16 · <a href="#u0022">u0022</a></span></li></ol></li>
+<li class="unrev"><b>Child&#x27;s feelings of safety · parent:</b> Parent said Dave is not mean and enjoys his time with Jill. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is not mean and enjoys his time with Jill</q> <span class="who">Parent, 2:58 · <a href="#u0019">u0019</a></span></li></ol></li>
+<li class="unrev"><b>Child&#x27;s feelings of safety · the report:</b> The report, as read by the worker, says Jill said Dave often gets angry and hits her with objects. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>often gets angry and hits her with objects</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li></ol></li>
+</ul>
+<h2>Accounts not yet heard</h2><ul class="items">
+<li class="unrev"><b>Account not yet heard from Dave Mercer:</b> Named in the report as a man named Dave who Jill was left with while Mom worked; Parent said he is her boyfriend, lives in the home, and was in the garage that day. He was not interviewed. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>a man named Dave</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li><li><q>he was out in the garage working on his truck</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+</ul>
+<h2>Possible next steps (options for the worker)</h2><ul class="items">
+<li class="unrev"><b>Option:</b> The worker may wish to record that the report, Parent&#x27;s account and Jill&#x27;s statement differ on how the eye injury happened, and consider how to follow up. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>hit her in the eye with a cup he threw at her</q> <span class="who">Worker, 0:55 · <a href="#u0009">u0009</a></span></li><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> Consider asking Jill once, in an open-ended way, what she remembers about the injury, where it happened, and who was there, without pressing for an answer. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> The worker may wish to decide whether to explore further what Jill meant by being afraid of Dave and by &quot;When he yells.&quot; <span class="mark">Not reviewed</span><ol class="quotes"><li><q>he just scares me</q> <span class="who">Child, 3:04 · <a href="#u0020">u0020</a></span></li><li><q>When he yells.</q> <span class="who">Child, 3:16 · <a href="#u0022">u0022</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> Consider asking Parent when the injury happened, since she said only when she first saw it. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I saw it Tuesday night when I got home from work.</q> <span class="who">Parent, 1:53 · <a href="#u0012">u0012</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> Consider asking whether anyone else lives or stays at the home. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> The worker may wish to consider whether and how to obtain an account from Dave Mercer. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · <a href="#u0014">u0014</a></span></li></ol></li>
+<li class="unrev"><b>Option:</b> Prior or other injuries, other contacts (including a school contact), and next steps or a safety plan were not covered before Parent asked the worker to leave. The worker may wish to consider how and when to address them. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Please leave now, I am to upset to continue.</q> <span class="who">Parent, 3:19 · <a href="#u0023">u0023</a></span></li></ol></li>
+</ul>
+<h2>Notes, flags and consent</h2>
+<h4>Flags raised during the interview</h4><ul class="items"><li class="unrev">Parent&#x27;s account attributes injury to a fall, conflicting with the allegation reported to the worker. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising.</q> <span class="who">Parent, 1:23 · <a href="#u0010">u0010</a></span></li></ol></li><li class="unrev">Child stated that Dave is sometimes mean and that she is afraid of him. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is sometime mean and I am afraid of him.</q> <span class="who">Child, 2:32 · <a href="#u0017">u0017</a></span></li></ol></li><li class="unrev">Child states she is afraid of Dave and he is sometimes mean, while parent disputes that Dave is mean. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Dave is not mean and enjoys his time with Jill</q> <span class="who">Parent, 2:58 · <a href="#u0019">u0019</a></span></li></ol></li><li class="unrev">Child states Dave scares her and that she is afraid of him. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>I don&#x27;t know, he just scares me.</q> <span class="who">Child, 3:04 · <a href="#u0020">u0020</a></span></li></ol></li><li class="unrev">Parent requested the interview end, stating she is too upset to continue. <span class="mark">Not reviewed</span><ol class="quotes"><li><q>Please leave now, I am to upset to continue.</q> <span class="who">Parent, 3:19 · <a href="#u0023">u0023</a></span></li></ol></li></ul>
+<h4>Consent</h4><p>Consent to recording: Covered. Refusal check: none raised.</p>
+<h2>Transcript</h2><section class="transcript">
+<p id="u0001"><span class="who">0:01 Worker</span> I am John Smith, CPS worker, I am here to discuss a concern reported about your child Jill Carter.</p>
+<p id="u0002"><span class="who">0:10 Worker</span> Our agency has a recording tool that will transcribe our conversation today for accuracy and to assist with any issues that may be identified during our conversation. May I use that tool?</p>
+<p id="u0003"><span class="who">0:24 Parent</span> Yes, you may use that tool.</p>
+<p id="u0004"><span class="who">0:28 Worker</span> I am turning on the tool and asking each person in the interview to please consent to being recorded.</p>
+<p id="u0005"><span class="who">0:37 Parent</span> I consent</p>
+<p id="u0006"><span class="who">0:40 Child</span> I consent</p>
+<p id="u0007"><span class="who">0:42 Worker</span> Jill, before we talk more, can you tell me how old you are and what grade you are in?</p>
+<p id="u0008"><span class="who">0:51 Child</span> I&#x27;m seven. I&#x27;m in second grade.</p>
+<p id="u0009"><span class="who">0:55 Worker</span> Our agency received a report that Jill came to school with a black eye. It was reported that a man named Dave, who she was left with while you were working Mom, hit her in the eye with a cup he threw at her. It is reported she said this man is often her caregiver and often gets angry and hits her with objects.</p>
+<p id="u0010"><span class="who">1:23 Parent</span> Dave is my boyfriend and lives here. His name is Dave Mercer, and he is not abusive at all to anyone. I just am having a hard time believing it. Jill told me she fell and hit her face and that is what caused the bruising.</p>
+<p id="u0011"><span class="who">1:43 Worker</span> Thank you for telling me that. When did you first notice the bruise, and what do you know about how it happened?</p>
+<p id="u0012"><span class="who">1:53 Parent</span> I saw it Tuesday night when I got home from work. She said she tripped on the stairs here at the house.</p>
+<p id="u0013"><span class="who">2:03 Worker</span> Who was with Jill that day while you were at work?</p>
+<p id="u0014"><span class="who">2:09 Parent</span> Dave was here, he&#x27;s here most days. But he was out in the garage working on his truck, he didn&#x27;t see anything.</p>
+<p id="u0015"><span class="who">2:20 Worker</span> Has Jill been seen by a doctor or nurse about her eye?</p>
+<p id="u0016"><span class="who">2:26 Parent</span> No, it&#x27;s just a bruise. It didn&#x27;t seem that bad.</p>
+<p id="u0017"><span class="who">2:32 Child</span> I don&#x27;t remember what happened. Dave is sometime mean and I am afraid of him. He said he does not think he should be responsible for me when Mom is working.</p>
+<p id="u0018"><span class="who">2:46 Worker</span> Jill, when you said he is mean, can you give me any additional information on what mean is to you and how he acts mean with you.</p>
+<p id="u0019"><span class="who">2:58 Parent</span> Dave is not mean and enjoys his time with Jill</p>
+<p id="u0020"><span class="who">3:04 Child</span> I don&#x27;t know, he just scares me.</p>
+<p id="u0021"><span class="who">3:08 Worker</span> Jill, you said he scares you. Can you tell me about a time you felt scared?</p>
+<p id="u0022"><span class="who">3:16 Child</span> When he yells.</p>
+<p id="u0023"><span class="who">3:19 Parent</span> Please leave now, I am to upset to continue.</p>
+</section>
+<footer><p>Models: gate: openrouter:google/gemini-3.8-flash · cue: openrouter:google/gemini-3.8-flash · review: openrouter:anthropic/claude-sonnet-5.5. Generated on 2026-10-08. Model cost for this session: $0.1938.</p><p>This tool listens to an interview, tracks which checklist topics were covered and suggests follow-up questions. It does not judge credibility, make findings or decide anything; a person reviews every item.</p></footer><script>(function(){var b=document.getElementById('expand');b.hidden=false;var d=document.querySelectorAll('details.topic');b.onclick=function(){var o=[].some.call(d,function(x){return !x.open});[].forEach.call(d,function(x){x.open=o});b.textContent=o?'Collapse all':'Expand all'};window.addEventListener('beforeprint',function(){[].forEach.call(d,function(x){x.open=true})})})();</script></body></html>

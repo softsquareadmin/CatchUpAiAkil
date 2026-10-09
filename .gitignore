@@ -1,0 +1,11 @@
+.env
+sessions/
+audit_logs/
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
+
+# Recordings of real people stay local (the owner's job interview, the owner's own recording of the fictional CPS
+# script), and so does anything tools/make_test_audio.py writes there (clip caches, wav copies).
+tests/fixtures/audio/

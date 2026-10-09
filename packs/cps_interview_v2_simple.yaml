@@ -1,0 +1,83 @@
+# The CPS topics of cps_interview_v2 expressed only at tier 1 (label, criteria, follow_up_when), written from the
+# v2 definitions (M7, 2026-10-08) without looking at test results, and NOT tuned afterwards (SPEC-M7 evaluation
+# rule 6). M10 compares it with cps_interview_v2 on the same script. No guardrails or special topics block: the
+# engine's generic rules apply (no consent stop prompt, no age hint, generic lint).
+id: cps_interview_v2_simple
+version: "0.1.0"
+pack_format: 2
+name: CPS interview (simple, tier 1 only)
+purpose: >
+  A caseworker interviews a parent and a child about a concern reported to the agency. Track the required
+  topics, capture what each person says in their own words, and mark answers that need a follow-up.
+roles:
+  - {id: worker, label: Worker, kind: user}
+  - {id: parent, label: Parent, kind: subject}
+  - {id: child, label: Child, kind: subject}
+sample_script: tests/fixtures/script_v2.json
+checklist:
+  - id: recording_consent
+    label: Consent to recording
+    criteria:
+      - The parent agrees to the recording
+      - The child agrees to the recording
+  - id: child_age_grade
+    label: Child's age and grade
+    criteria:
+      - The child's age
+      - The child's current school grade, or that the child is not in school
+      - For a child in 2nd grade or above, the child says it (the parent's answer alone is not enough)
+    follow_up_when: The parent and the child give different answers
+  - id: parent_account
+    label: Parent's account of injury
+    criteria:
+      - What happened, in the parent's own words
+      - Where it happened
+    follow_up_when: The parent's account changes during the interview, or contradicts the child's account
+  - id: child_account
+    label: Child's account of injury
+    criteria:
+      - What happened, in the child's own words
+      - Where it happened
+      - Who was there
+    follow_up_when: The child's account contradicts the parent's account
+  - id: household_members
+    label: Household members
+    criteria:
+      - Everyone who lives in the home, by name
+      - Each person's relationship to the child
+    follow_up_when: The parent and the child give lists of household members that contradict each other
+  - id: caregivers
+    label: Caregivers while parent works
+    criteria:
+      - Who cares for the child while the parent works, by name
+      - That person's relationship to the child
+      - If the report names a person, whether that person looks after the child
+  - id: child_safety_feelings
+    label: Child's feelings of safety
+    criteria:
+      - Whether the child feels safe at home, in the child's own words
+      - Why, or when, if not
+    follow_up_when: The child says they feel unsafe or afraid, or that someone scares them, without saying why or when
+  - id: medical_attention
+    label: Medical attention for injury
+    criteria:
+      - Whether the child was seen by a doctor, nurse or clinic
+      - If yes, where and when
+      - If no care was sought, saying so is a complete answer
+    follow_up_when: The parent and the child contradict each other about medical care
+  - id: prior_injuries
+    label: Prior or other injuries
+    criteria:
+      - Earlier injuries or concerns were asked about and answered
+      - Other injuries or marks the child has now were asked about and answered
+      - Both the parent and the child answered
+    follow_up_when: The parent's and the child's answers contradict each other
+  - id: other_contacts
+    label: Other people to contact
+    criteria:
+      - At least one person outside the home who can be reached, with a name plus a role or place
+  - id: safety_plan
+    label: Safety plan and next steps
+    criteria:
+      - The worker explains what happens next, and any safety plan
+      - The family acknowledges it

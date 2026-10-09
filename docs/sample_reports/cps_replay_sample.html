@@ -1,0 +1,163 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPS interview (parent and child) report cps_replay_sample</title><style>
+:root{--bg:#fff;--fg:#15285a;--muted:#5d6f94;--line:#dde6f4;--panel:#f7f9fd;--accent:#087bff;--track:#eaf0f8;
+--cov:#08a353;--cov-bg:#dff9eb;--par:#a35f00;--par-bg:#fff0d7;--not:#c8102e;--not-bg:#ffe5eb;--mark:#7a4d00;--mark-bg:#fff1d6}
+@media (prefers-color-scheme:dark){:root{--bg:#10151f;--fg:#e6ecf7;--muted:#9fb0cf;--line:#2c3850;--panel:#171e2b;
+--accent:#5aa6ff;--track:#2c3850;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
+--not-bg:#3d1720;--mark:#f2c879;--mark-bg:#3a2e14}}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
+font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow-wrap:anywhere}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:28px 0 10px}h3{font-size:16px;margin:0}
+h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+.meta{color:var(--muted);font-size:13px;margin:0}.meta b{color:var(--fg);font-weight:600}
+.sample{display:inline-block;background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:2px 10px;
+font-weight:700;font-size:13px;margin-bottom:8px}
+.banner{border:2px solid var(--fg);border-radius:8px;padding:10px 14px;margin:16px 0;font-weight:600}
+.omitted{color:var(--muted);font-size:13px;margin:4px 0}
+.coverage{display:flex;align-items:center;gap:28px;padding:16px;border:1px solid var(--line);border-radius:9px;
+background:var(--panel)}
+.ring{width:112px;height:112px;flex-shrink:0;padding:12px;border-radius:50%;
+background:conic-gradient(var(--accent) var(--p),var(--track) 0);transform:rotate(-90deg)}
+.ring>div{height:100%;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;
+justify-content:center;align-items:center;transform:rotate(90deg)}
+.ring strong{font-size:26px;line-height:1.2}.ring span{font-size:11px;color:var(--muted);text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex:1}
+.stat b{display:block;font-size:26px}.stat{font-size:13px;color:var(--muted)}
+.stat.covered b{color:var(--cov)}.stat.partial b{color:var(--par)}.stat.not_covered b{color:var(--not)}
+.covnote{font-size:13px;color:var(--muted);margin:8px 0 0}
+details.topic{--c:var(--muted);--cb:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);
+border-radius:8px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.topic.covered{--c:var(--cov);--cb:var(--cov-bg)}.topic.partial{--c:var(--par);--cb:var(--par-bg)}
+.topic.not_covered{--c:var(--not);--cb:var(--not-bg)}
+.topic>summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;cursor:pointer}
+.topic>summary h3{flex:1;min-width:12em}
+.sym{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+background:var(--c);color:var(--bg);font-weight:700}
+.chip{color:var(--c);background:var(--cb);border:1px solid var(--c);padding:2px 10px;border-radius:999px;
+font-size:12px;white-space:nowrap}
+.pts{font-size:13px;color:var(--muted)}
+.mark{background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:1px 8px;font-size:12px;
+font-weight:600;white-space:nowrap}
+.unrev{border:1px dashed var(--mark);border-radius:6px;padding:4px 8px}
+.tbody{padding:0 14px 12px}.empty{color:var(--muted);font-style:italic}
+.changed{font-size:13px;background:var(--panel);border-radius:6px;padding:6px 10px;margin:8px 0 0}
+ol.quotes,ul.items{margin:4px 0;padding-left:22px}ol.quotes li,ul.items li{margin:4px 0}
+q{font-style:italic}.who{color:var(--muted);font-size:12px;white-space:nowrap}
+.overall{border:2px dashed var(--mark);border-radius:9px;padding:4px 16px 12px;margin-top:28px}
+.transcript p{margin:4px 0}.transcript .who{display:inline-block;min-width:9em}
+footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+#expand{float:right;font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;
+background:var(--panel);color:var(--fg);cursor:pointer}
+@media (max-width:640px){.coverage{flex-direction:column;align-items:stretch}.ring{align-self:center}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{:root{--bg:#fff;--fg:#000;--muted:#333;--line:#999;--panel:#fff;--accent:#000;--track:#ccc;--cov:#000;
+--cov-bg:#fff;--par:#000;--par-bg:#fff;--not:#000;--not-bg:#fff;--mark:#000;--mark-bg:#fff}
+body{max-width:none;padding:0}#expand{display:none}.ring{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+details.topic::details-content{content-visibility:visible;display:block}a{color:inherit;text-decoration:none}}
+</style></head><body>
+<header><button id="expand" type="button" hidden>Expand all</button>
+<p class="sample">Sample, fictional data</p>
+<h1>CPS interview (parent and child)</h1><p class="meta"><b>Pack</b> cps_interview_v2@0.4.0 · <b>Date</b> 2026-10-08 12:00 UTC · <b>Duration</b> 3:23 · <b>Input</b> Replay</p><p class="meta"><b>Roles</b> Worker (user), Parent, Child · <b>Session</b> cps_replay_sample</p></header>
+<p class="banner">AI-assisted draft. Reviewed by the worker on 2026-10-08. Not a decision.</p>
+<p class="omitted">1 item rejected by the worker, not shown.</p>
+<p class="omitted">2 items not reviewed, not shown.</p>
+<h2>Checklist coverage</h2><section class="coverage">
+<div class="ring" style="--p:41%"><div><strong>41%</strong><span>Checklist coverage</span></div></div>
+<div class="stats"><div class="stat covered"><b>1</b>Covered</div><div class="stat partial"><b>7</b>Partial</div><div class="stat not_covered"><b>3</b>Not covered</div><div class="stat"><b>11</b>Required topics</div></div></section>
+<p class="covnote">How much of the checklist the conversation covered (covered 100, partial 50, not covered 0, averaged over required topics). It is not a rating of anyone.</p>
+<h2>Topics</h2>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Prior or other injuries</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing</h4><ul class="items"><li>A full answer on prior or other injuries</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Other people to contact</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing</h4><ul class="items"><li>A full answer on other people to contact</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Safety plan and next steps</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p class="empty">Not discussed.</p>
+<h4>Still missing</h4><ul class="items"><li>A full answer on safety plan and next steps</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Child&#x27;s age and grade</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Child said: I&#x27;m in second grade.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · u0008</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on child&#x27;s age and grade</li></ul>
+<h4>Suggested follow-up</h4><p>What happened next, in your own words? <span class="mark">edited</span></p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Parent&#x27;s account of injury</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Parent said: Jill told me she fell and hit her face and that is what caused the bruising.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Jill told me she fell and hit her face and that is what caused the bruising.</q> <span class="who">Parent, 1:23 · u0010</span></li><li><q>She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · u0012</span></li><li><q>No, it&#x27;s just a bruise.</q> <span class="who">Parent, 2:26 · u0016</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on parent&#x27;s account of injury</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Child&#x27;s account of injury</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Child said: I don&#x27;t remember what happened.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>I don&#x27;t remember what happened.</q> <span class="who">Child, 2:32 · u0017</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on child&#x27;s account of injury</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Household members</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Parent said: Dave is my boyfriend and lives here.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · u0010</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on household members</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Caregivers while parent works</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Parent said: Dave was here, he&#x27;s here most days.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · u0014</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on caregivers while parent works</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Child&#x27;s feelings of safety</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Child said: Dave is sometime mean and I am afraid of him.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Dave is sometime mean and I am afraid of him.</q> <span class="who">Child, 2:32 · u0017</span></li><li><q>I don&#x27;t know, he just scares me.</q> <span class="who">Child, 3:04 · u0020</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on child&#x27;s feelings of safety</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Medical attention for injury</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Parent said: No, it&#x27;s just a bruise.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>No, it&#x27;s just a bruise.</q> <span class="who">Parent, 2:26 · u0016</span></li></ol>
+<h4>Still missing</h4><ul class="items"><li>A full answer on medical attention for injury</li></ul>
+<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+</div></details>
+<details class="topic covered"><summary><span class="sym" aria-hidden="true">&#10003;</span><h3>Consent to recording</h3><span class="pts">100%</span><span class="chip">Covered</span></summary><div class="tbody">
+<h4>Summary</h4>
+<p>Parent said: Yes, you may use that tool.</p>
+<h4>Quotes</h4><ol class="quotes"><li><q>Yes, you may use that tool.</q> <span class="who">Parent, 0:24 · u0003</span></li><li><q>I consent</q> <span class="who">Parent, 0:37 · u0005</span></li><li><q>I consent</q> <span class="who">Child, 0:40 · u0006</span></li></ol>
+</div></details>
+<h2>Attributed summary</h2><ul class="items">
+<li><b>Parent said:</b> Said: Yes, you may use that tool.<ol class="quotes"><li><q>Yes, you may use that tool.</q> <span class="who">Parent, 0:24 · u0003</span></li></ol></li>
+<li><b>Parent said:</b> Said: I consent<ol class="quotes"><li><q>I consent</q> <span class="who">Parent, 0:37 · u0005</span></li></ol></li>
+<li><b>Child said:</b> Said: I consent<ol class="quotes"><li><q>I consent</q> <span class="who">Child, 0:40 · u0006</span></li></ol></li>
+<li><b>Child said:</b> Said: I&#x27;m seven. I&#x27;m in second grade.<ol class="quotes"><li><q>I&#x27;m seven. I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · u0008</span></li></ol></li>
+<li><b>Parent said:</b> Said: Dave is my boyfriend and lives here. His name is Dave Mercer, and he is not abusive at all to anyone. I just am having a hard time believing it. Jill told me she fell and hit her face and that is what caused the bruising.<ol class="quotes"><li><q>Dave is my boyfriend and lives here. His name is Dave Mercer, and he is not abusive at all to anyone. I just am having a hard time believing it. Jill told me she fell and hit her face and that is what caused the bruising.</q> <span class="who">Parent, 1:23 · u0010</span></li></ol></li>
+<li><b>Parent said:</b> Said: I saw it Tuesday night when I got home from work. She said she tripped on the stairs here at the house.<ol class="quotes"><li><q>I saw it Tuesday night when I got home from work. She said she tripped on the stairs here at the house.</q> <span class="who">Parent, 1:53 · u0012</span></li></ol></li>
+<li><b>Parent said:</b> Said: Dave was here, he&#x27;s here most days. But he was out in the garage working on his truck, he didn&#x27;t see anything.<ol class="quotes"><li><q>Dave was here, he&#x27;s here most days. But he was out in the garage working on his truck, he didn&#x27;t see anything.</q> <span class="who">Parent, 2:09 · u0014</span></li></ol></li>
+<li><b>Parent said:</b> Said: No, it&#x27;s just a bruise. It didn&#x27;t seem that bad.<ol class="quotes"><li><q>No, it&#x27;s just a bruise. It didn&#x27;t seem that bad.</q> <span class="who">Parent, 2:26 · u0016</span></li></ol></li>
+<li><b>Child said:</b> Said: I don&#x27;t remember what happened. Dave is sometime mean and I am afraid of him. He said he does not think he should be responsible for me when Mom is working.<ol class="quotes"><li><q>I don&#x27;t remember what happened. Dave is sometime mean and I am afraid of him. He said he does not think he should be responsible for me when Mom is working.</q> <span class="who">Child, 2:32 · u0017</span></li></ol></li>
+<li><b>Parent said:</b> Said: Dave is not mean and enjoys his time with Jill<ol class="quotes"><li><q>Dave is not mean and enjoys his time with Jill</q> <span class="who">Parent, 2:58 · u0019</span></li></ol></li>
+<li><b>Child said:</b> Said: I don&#x27;t know, he just scares me.<ol class="quotes"><li><q>I don&#x27;t know, he just scares me.</q> <span class="who">Child, 3:04 · u0020</span></li></ol></li>
+<li><b>Child said:</b> Said: When he yells.<ol class="quotes"><li><q>When he yells.</q> <span class="who">Child, 3:16 · u0022</span></li></ol></li>
+<li><b>Parent said:</b> Said: Please leave now, I am to upset to continue.<ol class="quotes"><li><q>Please leave now, I am to upset to continue.</q> <span class="who">Parent, 3:19 · u0023</span></li></ol></li>
+</ul>
+<h2>Form fields</h2><ul class="items">
+<li><b>Child school grade:</b> I&#x27;m in second grade.<ol class="quotes"><li><q>I&#x27;m in second grade.</q> <span class="who">Child, 0:51 · u0008</span></li></ol></li>
+<li><b>Household members:</b> Dave is my boyfriend and lives here.<ol class="quotes"><li><q>Dave is my boyfriend and lives here.</q> <span class="who">Parent, 1:23 · u0010</span></li></ol></li>
+<li><b>Caregivers:</b> Dave was here, he&#x27;s here most days.<ol class="quotes"><li><q>Dave was here, he&#x27;s here most days.</q> <span class="who">Parent, 2:09 · u0014</span></li></ol></li>
+</ul>
+<h2>Notes, flags and consent</h2>
+<h4>Consent</h4><p>Consent to recording: Covered. Refusal check: none raised.</p>
+<footer><p>Models: gate: fake:keyword · cue: fake:template · review: fake:template. Generated on 2026-10-08.</p><p>This tool listens to an interview, tracks which checklist topics were covered and suggests follow-up questions. It does not judge credibility, make findings or decide anything; a person reviews every item.</p></footer><script>(function(){var b=document.getElementById('expand');b.hidden=false;var d=document.querySelectorAll('details.topic');b.onclick=function(){var o=[].some.call(d,function(x){return !x.open});[].forEach.call(d,function(x){x.open=o});b.textContent=o?'Collapse all':'Expand all'};window.addEventListener('beforeprint',function(){[].forEach.call(d,function(x){x.open=true})})})();</script></body></html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review · Interview Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%231a56c4%22/%3E%3Cpath fill=%22white%22 d=%22M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5.5a6.5 6.5 0 0 0 5.75 6.45V20h1.5v-2.55A6.5 6.5 0 0 0 18.5 11z%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/pages.css">
+</head>
+<body>
+  <a class="skip" href="#reviewBody">Skip to the review</a>
+  <header id="appbar" class="appbar"></header>
+  <main class="page">
+    <div class="page-head">
+      <h1 id="title">Review</h1>
+      <span id="reviewState" class="badge"></span>
+    </div>
+    <p id="subtitle" class="hint"></p>
+
+    <div class="review-layout">
+      <div>
+        <p class="hint">Nothing is final until you accept it. Only accepted or edited items are exported. Tap a quote to see it in the transcript.</p>
+        <p id="reviewNotice" class="notice" hidden></p>
+        <div id="reviewBody" tabindex="-1"></div>
+      </div>
+
+      <aside class="review-side" aria-label="Report and transcript">
+        <section id="exportBox" class="card" hidden>
+          <h2 class="section-title">Report</h2>
+          <fieldset id="exportOpts" class="export-opts">
+            <legend>Options</legend>
+            <div class="field" style="width:100%">
+              <label for="optReviewer">Reviewed by (optional)</label>
+              <input id="optReviewer" type="text" maxlength="120" autocomplete="name">
+            </div>
+            <label class="check"><input id="optUnreviewed" type="checkbox"> Include items not reviewed</label>
+            <label class="check"><input id="optTranscript" type="checkbox"> Include the full transcript</label>
+            <label class="check"><input id="optCost" type="checkbox"> Include model cost</label>
+          </fieldset>
+          <div class="btn-row" style="margin-top:12px">
+            <a id="openReport" class="btn btn-primary" target="_blank" rel="noopener">Open report</a>
+            <a id="exportHtml" class="btn" download>Export HTML</a>
+            <a id="exportJson" class="btn" download>Export JSON</a>
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button id="auditBtn" type="button" class="btn-quiet" aria-expanded="false" aria-controls="auditList">Audit trail</button>
+          </div>
+          <ol id="auditList" class="audit" hidden></ol>
+        </section>
+        <section class="card">
+          <h2 class="section-title">Transcript</h2>
+          <ol id="transcript" class="transcript" aria-label="Transcript"></ol>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/review.js"></script>
+</body>
+</html>
