@@ -15,7 +15,6 @@ All paths are relative to the project folder (`voicenotes-poc/`, the folder with
 | Past interviews and test runs | `sessions/` | Run data, can contain transcripts | Ask for a copy, or make your own by running the app |
 | Configuration save log | `audit_logs/` | Run data | Created on the first save from the Configuration page |
 | Test recordings | `tests/fixtures/audio/` | Recordings of real people | Ask for a copy, or use your own recording |
-| CatchUp reference report | `docs/reference/` | Contains content from a real recording; used once for a comparison | Not needed |
 
 ## `.env`: your own keys
 
