@@ -351,7 +351,7 @@ function renderConsent() {
 // The user records who consented with a tap: short replies such as "I consent" are easily missed or mislabelled.
 $("consent").addEventListener("click", () => {
   if (!state.pack.consent_topic) return;
-  if (!state.begun || state.stopped) { toast(state.stopped ? "The interview has ended." : "Press Start interview first.", "info"); return; }
+  if (!state.begun) { toast("Press Start interview first.", "info"); return; }  // also after the end (owner, 2026-10-14)
   const subjects = state.pack.roles.filter((r) => r.kind === "subject");
   const boxes = subjects.map((r) => {
     const cb = el("input", { type: "checkbox", id: `consent-${r.id}` });

@@ -604,12 +604,13 @@ class Session:
     async def record_consent(self, roles: list[str]) -> str | None:
         """The user records who consented (a tap, not the transcript: short replies such as "I consent" are easily
         mis-heard or given the wrong speaker). Sets the consent topic: covered when every interviewee consented,
-        partial when some did. The gate and the review then leave it alone; refusal detection still runs."""
+        partial when some did. The gate and the review then leave it alone; refusal detection still runs. Also after the
+        interview has ended (owner, 2026-10-14): a written review is updated too. Cards about consent are removed."""
         ct = self.pack.special_topics.consent_topic
         if not ct:
             return "this interview type has no consent topic"
-        if self.stopped:
-            return f"The tool is stopped ({self.stopped})."
+        if not self.begun and not self.store.utterances:
+            return "Press Start interview first."
         subjects = self.pack.subject_ids
         if any(r not in subjects for r in roles):
             return f"consent roles must be among: {', '.join(subjects)}"
@@ -623,7 +624,24 @@ class Session:
         self.audit.write("user", "consent_recorded", roles=given, status=status)
         self.events.write("topic_update", state=s.model_dump(), stage="user")
         await self.send({"type": "topic_update", "state": s.model_dump()})
-        await self.after_topic_changes([s])
+        await self.after_topic_changes([s])  # follow-up level none: the consent follow-up card is withdrawn
+        for cue in list(self.board.cues.values()):  # and any flag card about consent
+            if cue.kind == "flag" and cue.topic_id == ct and cue.state == "active":
+                self.board.cues[cue.id] = cue.model_copy(update={"state": "dismissed"})
+                self.events.write("cue_withdrawn", cue_id=cue.id, reason="consent recorded by the user")
+                await self.send({"type": "cue_withdrawn", "id": cue.id})
+        if self.draft is not None and self.draft.get("topics"):  # the review is written: it follows the user too
+            t = next((t for t in self.draft["topics"] if t["topic_id"] == ct), None)
+            if t is not None:
+                if status == "covered" and t.get("follow_up"):
+                    t["follow_up"] = None  # no follow-up question for a covered topic (as in the review itself)
+                err, msg = review_actions.topic_status(self.draft, self.audit, self.pack, ct, status)
+                for o in (self.draft.get("checklist") or {}).get("open_topics", []):
+                    if o.get("id") == ct:
+                        o.update(status=status, follow_up="none", follow_up_reason="")
+                self.save_draft()
+                if msg:
+                    await self.send(msg)
         return None
 
     async def consent_decision(self, stop: bool) -> None:

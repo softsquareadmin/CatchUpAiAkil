@@ -698,3 +698,51 @@ def test_the_review_keeps_the_recorded_consent_and_the_report_says_who(tmp_path)
     (tmp_path / s.id / "draft_note.json").write_text(json.dumps({"topics": topics, "items": []}))
     html = render_html(build_report(load_session(tmp_path / s.id), PACK))
     assert "Recorded by the worker: Parent, Child." in html
+
+
+def test_recording_consent_removes_the_consent_follow_up_card(tmp_path):
+    script = {"u0001": upd("recording_consent", "partial", "suggested", "u0001", "I consent")}
+    s, sent = make_session(tmp_path, script)
+
+    async def go():
+        await s.begin()
+        await say(s, (1, "parent", "I consent"))
+        card = next(m["cue"]["id"] for m in sent if m["type"] == "cue" and m["cue"]["topic_id"] == "recording_consent")
+        assert s.board.active.get("recording_consent") == card
+        await s.record_consent(["parent", "child"])
+        return card
+    card = asyncio.run(go())
+    assert {"type": "cue_withdrawn", "id": card} in sent and "recording_consent" not in s.board.active
+
+
+def test_consent_can_be_recorded_after_the_interview_and_the_written_review_follows(tmp_path):
+    from app.review import topic_coverage
+    s, sent = make_session(tmp_path)
+    topics = [{"topic_id": c.id, "label": c.label, "required": c.required, "status": "covered", "live_status": "covered",
+               "review_status": None, "status_reason": "", "status_by": "live", "evidence": [], "summary": None,
+               "missing": None, "follow_up": None} for c in PACK.checklist]
+    consent = next(t for t in topics if t["topic_id"] == "recording_consent")
+    consent.update(status="partial", live_status="partial",
+                   follow_up={"value": "What do you think about us recording?", "status": "proposed"})
+
+    async def go():
+        await s.begin()
+        await s.stop_tool("interview ended")
+        s.draft = {"topics": topics, "items": [], "coverage": topic_coverage(PACK, topics),
+                   "checklist": {"open_topics": [{"id": "recording_consent", "status": "partial", "follow_up": "suggested",
+                                                  "follow_up_reason": "child missing"}]}}
+        assert await s.record_consent(["parent", "child"]) is None  # allowed after the end
+    asyncio.run(go())
+    assert s.checklist["recording_consent"].status == "covered"
+    saved = json.loads((tmp_path / s.id / "draft_note.json").read_text())
+    t = next(t for t in saved["topics"] if t["topic_id"] == "recording_consent")
+    assert t["status"] == "covered" and t["status_by"] == "user" and t["follow_up"] is None
+    assert saved["coverage"]["score"] == 100 and saved["checklist"]["open_topics"][0]["follow_up"] == "none"
+    assert any(m["type"] == "review_topic" for m in sent)
+    audit = (tmp_path / s.id / "audit.jsonl").read_text()
+    assert '"consent_recorded"' in audit and '"topic_status_changed_by_user"' in audit
+
+
+def test_consent_cannot_be_recorded_before_the_interview_starts(tmp_path):
+    s, _ = make_session(tmp_path)
+    assert asyncio.run(s.record_consent(["parent"])) == "Press Start interview first."

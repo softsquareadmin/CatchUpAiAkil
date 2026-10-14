@@ -76,6 +76,7 @@ The app runs on your own computer at `http://localhost:8000`.
 5. **Add notes** in the notes box under the checklist. Notes are yours: they go into the report as written.
 
 6. **Consent prompt** (interview types with a consent topic, such as CPS): if someone seems to refuse recording, the tool asks you. **Stop the tool** ends transcription at once; **Continue** carries on.
+   You can also **record consent yourself**: tap the consent badge in the top bar and tick who consented. Your answer replaces the assistant's (quick replies such as "I consent" are often misheard or given the wrong speaker), removes any consent cards, and works after the interview has ended too, updating the review.
 
    ![The consent prompt](docs/screenshots/consent-prompt.png)
 
