@@ -23,6 +23,7 @@ A second listener for structured interviews. It transcribes the conversation, tr
 - [Adding an interview type](#adding-an-interview-type)
 - [Cost, latency and rate limits](#cost-latency-and-rate-limits)
 - [Tests and evaluation scripts](#tests-and-evaluation-scripts)
+- [Deploy for others to test](#deploy-for-others-to-test)
 - [Repo layout](#repo-layout)
 - [Troubleshooting](#troubleshooting)
 - [Limits and roadmap](#limits-and-roadmap)
@@ -33,7 +34,7 @@ A second listener for structured interviews. It transcribes the conversation, tr
 
 ## Pages
 
-Every page has the same header: **Interview**, **Sessions**, **Configuration**, **Costs**.
+Every page has the same header (the Softsquare logo and **Interview**, **Sessions**, **Configuration**, **Costs**) and a "Built by Softsquare" footer. The colours follow Softsquare's logo: charcoal for buttons, links and the current page, and red only for things that need attention (required follow-ups, rejected items, recording, errors). Light or dark theme follows your system setting.
 
 | Page | URL | What it is for |
 |---|---|---|
@@ -134,7 +135,7 @@ The other draft sections are the ones the interview type asks for (summary, next
 - **Include model cost** (off by default).
 - **Open report** shows it in the browser; **Export HTML** / **Export JSON** download it. Every export is logged in the audit trail and a copy is saved in the session folder.
 
-**The HTML report** is one self-contained file, laid out to scan quickly: header and banner (AI-assisted draft, reviewed or not, and one line "X of N items reviewed"), checklist coverage with jump links, then the interview type's lead sections (CPS: Safety Flags, with the flags raised live folded in, and Child's Direct Statements), topics in two groups ("Needs follow-up", required follow-ups first, each a one-line row with its suggested question; "Covered", closed), accounts as a table (a row per topic, a column per person or source, unheard people last; stacked on a phone), then the other sections closed with a count (attributed summary, timeline only when at least 2 events have a stated date, next steps with options that only repeat a topic's follow-up turned into links), notes and consent, and the transcript (closed). Each full quote is shown once, in its main place; elsewhere a "1:47 · u0019" link points to it (or to the transcript line when included). Every section is a native expandable block: **Expand all** opens everything, the content stays in the page for find, and it works without JavaScript. Everything from the transcript or a model is escaped; the file makes **no network requests** (no fonts, scripts or images from elsewhere), so it opens offline. To make a PDF, open the report and use the browser's **Print → Save as PDF**: every section opens for printing and cards are not split across pages. Form fields are kept in the JSON export but not shown in the HTML report.
+**The HTML report** is one self-contained file, laid out to scan quickly: header with the Softsquare logo and banner (AI-assisted draft, reviewed or not, and one line "X of N items reviewed"), checklist coverage with jump links, then the interview type's lead sections (CPS: Safety Flags, with the flags raised live folded in, and Child's Direct Statements), topics in two groups ("Needs follow-up", required follow-ups first, each a one-line row with its suggested question; "Covered", closed), accounts as a table (a row per topic, a column per person or source, unheard people last; stacked on a phone), then the other sections closed with a count (attributed summary, timeline only when at least 2 events have a stated date, next steps with options that only repeat a topic's follow-up turned into links), notes and consent, and the transcript (closed). Each full quote is shown once, in its main place; elsewhere a "1:47 · u0019" link points to it (or to the transcript line when included). Every section is a native expandable block: **Expand all** opens everything, the content stays in the page for find, and it works without JavaScript. Everything from the transcript or a model is escaped; the file makes **no network requests** (no fonts, scripts or images from elsewhere; the logo is inside the file), so it opens offline. To make a PDF, open the report and use the browser's **Print → Save as PDF**: every section opens for printing and cards are not split across pages. Form fields are kept in the JSON export but not shown in the HTML report.
 
 ![The top of an exported report](docs/screenshots/report-top.png)
 
@@ -396,13 +397,62 @@ Other offline tools (free):
 
 Paid scripts (real models; run only on purpose, they print their cost): `tests.smoke_gate`, `tests.smoke_cues`, `tests.smoke_review`, `tests.smoke_mic`, `tests.smoke_audio_file`, `tests.compare_gates`, `tests.compare_cues`, `tests.eval_job_audio`, `tests.check_limiter`, `tests.make_real_reports`, `tests.measure_review_drops`. Each file's first line says what it does and roughly what it costs. Run them as `.venv/bin/python -m tests.<name>`.
 
+## Deploy for others to test
+
+A shared test copy runs on a free [Render](https://render.com) web service (Docker, HTTPS, websockets) and keeps its
+data in a free [Supabase](https://supabase.com) project. The free web service sleeps after 15 minutes without
+visitors (the first visit then takes about a minute) and its disk is wiped on every restart, so the app copies its
+files to Supabase and copies them back at startup.
+
+**What is kept.** One table, `ia_files` (path, content), mirrors the small text files: every session folder (except
+`audio.pcm`, and files over 5 MB), saved pack versions (`packs/<id>__<version>.yaml`) and `audit_logs/config.jsonl`.
+The app still reads and writes local files; a background task pushes changed files every 3 seconds, and right away
+after a review decision, an export, a pack save, a closed session and at shutdown. If Supabase cannot be reached the
+app keeps running on its disk, retries, and `/health` shows `"storage": "error"` with the reason. Packs that are in
+the repo are never taken from the table.
+
+**Settings** (environment variables; `.env.example` lists them):
+
+| Variable | Purpose |
+|---|---|
+| `SYNC_ENABLED` | `true` only on the deployed copy. Off by default, so a local run never uploads anything |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | The project URL and its **secret** (service role) key; server-side only |
+| `APP_PASSCODE` | Everyone signs in with this passcode; pages, `/api` and the websocket are closed without it. `/health` stays open |
+| `SESSION_SECRET` | Signs the sign-in cookie (7 days); required when `APP_PASSCODE` is set. Changing either signs everyone out |
+| `MAX_TOTAL_COST_USD` | Total spend of all sessions together; at the limit paid models stop (mic, audio file, real template tests, checklist, cards and review), the offline models keep working. 0 or empty = no limit (the local default); the deployment uses 10 |
+
+**One-time setup (owner, about 30 minutes)**
+1. **Supabase:** create a free project, run [ia_files.sql](ia_files.sql) in the SQL Editor, copy the project URL and
+   the secret key into your local `.env`, then check it: `.venv/bin/python -m scripts.check_supabase`. It writes and
+   rewrites one check row, `_check/ping.txt`, which stays in the table (the key cannot delete rows, on purpose) and is
+   never copied into the app.
+2. **Provider keys:** make deployment-only OpenRouter and AssemblyAI keys with hard limits (OpenRouter credit limit,
+   AssemblyAI prepaid balance). This is the real spending protection; `MAX_TOTAL_COST_USD` is a second one. A
+   2-minute recording costs about $0.15.
+3. **Render:** New → Blueprint, connect this GitHub repo; it reads [render.yaml](render.yaml). Paste the keys,
+   Supabase values and a passcode when asked (`SESSION_SECRET` is generated). Deploys are manual (`autoDeploy: false`).
+4. Open `https://<service>.onrender.com/health`: expect `"storage": "supabase"`, `"access": "passcode"` and
+   `"ffmpeg": true`. Open the link once before a demo to wake it.
+
+**Rules for the shared copy**
+- **Fictional or demo recordings only.** Everything run there is stored in Supabase and visible to everyone with the
+  passcode.
+- **One process only** (`--workers 1` in the [Dockerfile](Dockerfile)): live interviews are held in memory.
+- **Running locally with `SYNC_ENABLED=true`** copies the deployed sessions into your local `sessions/` folder.
+  Session folders that were already on your disk before startup and are not in Supabase are never uploaded, so your
+  local recordings stay local, but keep sync off locally unless you need the deployed data.
+
 ## Repo layout
 
 ```
 app/                 server: FastAPI app (main.py), session loop (pipeline.py), review, report export, lints, ledger, audit
 app/adapters/        speech to text (AssemblyAI, replay, typed), checklist gate, cue and review models, OpenRouter client
 app/static/          the pages: HTML, CSS (tokens, components, pages), plain JavaScript; no build step
+app/static/img/      Softsquare logos and browser tab icon (PNGs made from the brand files)
+assets/              Softsquare brand source files: PSD, EPS, JPEG (git-ignored; ask the owner for them)
 config/              settings.yaml, prices.json
+scripts/             check_supabase.py (checks the deployment's Supabase table)
+Dockerfile, render.yaml, ia_files.sql   the shared test deployment (see Deploy)
 packs/               interview types (YAML)
 tests/               offline tests, fixtures (fictional scripts), paid scripts, screenshot and report makers
 docs/                provider notes, sample reports, screenshots, design decisions
@@ -422,6 +472,8 @@ Background: [docs/dev-notes/PROGRESS.md](docs/dev-notes/PROGRESS.md) is the buil
 | Speaker labels wrong | Remap Voice A/B/C, or use the speaker toggle; see [Speaker labels](#speaker-labels) |
 | "Analysis delayed" / "Analysis skipped" | See [rate limits](#rate-limits); `python -m app.report --health` shows 429s and waits |
 | "Session cost ... passed the cap ... Paid calls are stopped" | The session hit `max_session_cost_usd`; start a new interview or raise the cap |
+| "This deployment has spent $… of its $… limit" | The deployed copy reached `MAX_TOTAL_COST_USD`; the owner raises it in Render, or use the offline models |
+| `/health` shows `"storage": "error"` | `storage_error` says why (often a paused Supabase project: free projects pause after a week without use; restore it in the dashboard). Files stay on the disk and are retried |
 | The page says the interview could not be resumed | The app restarted or you were away over 2 minutes; the old interview is under Sessions |
 | `python3` is 3.9 | Use the `.venv` created with `uv venv --python 3.12` |
 

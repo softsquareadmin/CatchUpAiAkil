@@ -1,6 +1,7 @@
 """Report export (SPEC-M11 11.4): the JSON export and a single self-contained HTML file built from a session folder.
 Only what the user accepted or edited goes in; unreviewed items only on request, marked "Not reviewed". Everything
 from a transcript or a model is HTML-escaped; no external requests; the same input gives the same file."""
+import base64
 import json
 from datetime import datetime, timezone
 from html import escape
@@ -18,6 +19,8 @@ STATUS = {"covered": "Covered", "partial": "Partial", "not_covered": "Not covere
 RANK = {"not_covered": 0, "partial": 1, "covered": 2}
 INPUTS = {"typed": "Typed", "replay": "Replay", "paste": "Pasted transcript", "mic": "Microphone", "file": "Audio file"}
 KEPT = ("accepted", "edited")
+# Softsquare logo, embedded so the exported file stays self-contained (owner, 2026-10-14)
+LOGO = Path(__file__).parent / "static" / "img" / "softsquare-agentic.png"
 
 
 def _jsonl(p: Path) -> list[dict]:
@@ -203,10 +206,10 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
 # Layout (2026-10-14, report readability): every section is a native <details> (open or closed by default), so the
 # content stays in the page for find, works without JavaScript, and opens fully for printing.
 CSS = """
-:root{--bg:#fff;--fg:#15285a;--muted:#5d6f94;--line:#dde6f4;--panel:#f7f9fd;--accent:#087bff;--track:#eaf0f8;
+:root{--bg:#fff;--fg:#1d1f23;--muted:#5c5f66;--line:#dfe0e3;--panel:#f7f7f8;--accent:#3f4349;--track:#ececee;
 --cov:#08a353;--cov-bg:#dff9eb;--par:#a35f00;--par-bg:#fff0d7;--not:#c8102e;--not-bg:#ffe5eb;--mark:#7a4d00;--mark-bg:#fff1d6}
-@media (prefers-color-scheme:dark){:root{--bg:#10151f;--fg:#e6ecf7;--muted:#9fb0cf;--line:#2c3850;--panel:#171e2b;
---accent:#5aa6ff;--track:#2c3850;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#ececee;--muted:#a5a7ad;--line:#33353a;--panel:#1b1c1f;
+--accent:#d7d8dc;--track:#33353a;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
 --not-bg:#3d1720;--mark:#f2c879;--mark-bg:#3a2e14}}
 *{box-sizing:border-box}
 body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
@@ -214,6 +217,8 @@ font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial
 h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:0}h3{font-size:16px;margin:0}
 h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
 a{color:var(--accent)}
+.logo{display:block;height:52px;width:auto;margin:0 0 14px}
+@media (prefers-color-scheme:dark){.logo{background:#fff;border-radius:6px;padding:6px 8px;height:64px}}
 .meta{color:var(--muted);font-size:13px;margin:0}.meta b{color:var(--fg);font-weight:600}
 .sample{display:inline-block;background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:2px 10px;
 font-weight:700;font-size:13px;margin-bottom:8px}
@@ -294,6 +299,11 @@ SCRIPT = ("<script>(function(){var b=document.getElementById('expand');b.hidden=
 SYMBOL = {"covered": "&#10003;", "partial": "&#9684;", "not_covered": "!"}
 NOUNS = {"summary": "statements", "timeline": "events", "next_steps": "options"}  # count shown on a closed section
 NO_LEAD_IN = ("next_steps",)  # sections whose item label ("Option") only repeats the heading
+
+
+def logo_img() -> str:
+    data = base64.b64encode(LOGO.read_bytes()).decode()
+    return f'<img class="logo" src="data:image/png;base64,{data}" alt="Softsquare, The Agentic AI Experts">'
 
 
 def render_html(r: dict) -> str:
@@ -381,7 +391,7 @@ def render_html(r: dict) -> str:
     out = [f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
            f'<meta name="viewport" content="width=device-width,initial-scale=1">'
            f'<title>{e(r["pack_name"])} report {e(r["session_id"])}</title><style>{CSS}</style></head><body>',
-           '<header><button id="expand" type="button" hidden>Expand all</button>']
+           '<header><button id="expand" type="button" hidden>Expand all</button>', logo_img()]
     if r["sample"]:
         out.append('<p class="sample">Sample, fictional data</p>')
     out.append(f'<h1>{e(r["pack_name"])}</h1><p class="meta"><b>Pack</b> {e(r["pack"])} · <b>Date</b> {e(started)} UTC'

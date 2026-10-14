@@ -15,6 +15,7 @@ All paths are relative to the project folder (`voicenotes-poc/`, the folder with
 | Past interviews and test runs | `sessions/` | Run data, can contain transcripts | Ask for a copy, or make your own by running the app |
 | Configuration save log | `audit_logs/` | Run data | Created on the first save from the Configuration page |
 | Test recordings | `tests/fixtures/audio/` | Recordings of real people | Ask for a copy, or use your own recording |
+| Softsquare brand files | `assets/` (PSD, EPS, JPEG) | Large source files the app does not read; the logos it uses are PNGs in `app/static/img/` | Ask the owner; only needed to remake the PNGs |
 
 ## `.env`: your own keys
 
@@ -29,6 +30,8 @@ cp .env.example .env
 | `OPENROUTER_API_KEY` | Real models: checklist, follow-up cards, review |
 | `ASSEMBLYAI_API_KEY` | Mic and Audio file modes |
 | `OPENAI_API_KEY`, `GOOGLE_API_KEY` | Not used by the app yet (reserved). `tools/make_test_audio.py` uses `OPENAI_API_KEY` from your shell to make synthetic test audio |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Only for `python -m scripts.check_supabase` and the deployed copy (README, "Deploy for others to test") |
+| `SYNC_ENABLED`, `APP_PASSCODE`, `SESSION_SECRET`, `MAX_TOTAL_COST_USD` | Deployment only; leave empty locally. With `SYNC_ENABLED=true` startup copies the deployed sessions into your `sessions/` |
 
 Costs go to your accounts, under your accounts' rate limits. Each session stops paid calls at `max_session_cost_usd`
 (`config/settings.yaml`, default $1.00). Never commit `.env` and never paste keys into chat or tickets.

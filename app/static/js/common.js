@@ -54,9 +54,17 @@ function mountHeader(active, endNodes = []) {
     if (key === active) a.setAttribute("aria-current", "page");
     return a;
   }));
-  const brand = el("a", { className: "brand", href: "/" }, el("span", { className: "logo", "aria-hidden": "true" }, icon("mic")),
-    "Interview Assistant");
+  const brand = el("a", { className: "brand", href: "/" }, logo("softsquare-wordmark", "Softsquare"),
+    el("span", { className: "product" }, "Interview Assistant"));
   bar.replaceChildren(brand, nav, el("div", { className: "appbar-end", id: "appbarEnd" }, endNodes));
+  // every page calls mountHeader, so the footer comes with it
+  if (!$("appfooter")) document.body.append(el("footer", { id: "appfooter", className: "appfooter" }, "Built by",
+    logo("softsquare-agentic", "Softsquare, The Agentic AI Experts")));
+}
+// Softsquare logo with a lighter copy for the dark theme (made from assets/, see PROGRESS)
+function logo(name, alt) {
+  return el("picture", {}, el("source", { srcset: `/static/img/${name}-dark.png`, media: "(prefers-color-scheme: dark)" }),
+    el("img", { className: "logo", src: `/static/img/${name}.png`, alt }));
 }
 
 // ---- toasts: polite, never take focus ----

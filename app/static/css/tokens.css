@@ -4,19 +4,21 @@
 :root {
   color-scheme: light;
   /* surfaces and text */
-  --bg: #f4f6fa;
+  --bg: #f4f4f5;
   --surface: #ffffff;
-  --surface-2: #eef2f7;
-  --ink: #15233f;
-  --ink-2: #3a4864;
-  --muted: #56627a;
-  --line: #d5dce7;
-  --line-strong: #8793a6;
-  /* brand / action */
-  --accent: #1a56c4;
+  --surface-2: #eeeff0;
+  --ink: #1d1f23;
+  --ink-2: #3b3e44;
+  --muted: #5c5f66;
+  --line: #d9dadd;
+  --line-strong: #85888f;
+  /* brand / action: Softsquare charcoal for actions; the logo red (--brand) only as brand mark and, as
+     --danger, for things that need attention */
+  --brand: #c8102e;
+  --accent: #3f4349;
   --accent-ink: #ffffff;
-  --accent-soft: #e6eefc;
-  --accent-soft-ink: #163f8f;
+  --accent-soft: #dfe0e3;
+  --accent-soft-ink: #1d1f23;
   /* status: covered / partial / not covered / required follow-up / flag */
   --ok: #17733a;
   --ok-soft: #e1f3e7;
@@ -24,16 +26,16 @@
   --warn: #7c5100;
   --warn-soft: #fff1d1;
   --warn-bar: #b88200;
-  --neutral: #4f5b6e;
-  --neutral-soft: #eceff4;
-  --neutral-bar: #838fa3;
-  --danger: #a8231c;
-  --danger-soft: #fde6e4;
+  --neutral: #55585f;
+  --neutral-soft: #ececee;
+  --neutral-bar: #8a8d94;
+  --danger: #c8102e;
+  --danger-soft: #fde7ea;
   --danger-ink: #ffffff;
   --flag: #6a3596;
   --flag-soft: #f2e8fa;
   /* focus */
-  --focus: 0 0 0 3px #ffffff, 0 0 0 6px #1a56c4;
+  --focus: 0 0 0 3px #ffffff, 0 0 0 6px #3f4349;
   /* spacing scale */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
   /* type scale */
@@ -41,8 +43,8 @@
   --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   /* shape and depth */
   --r-sm: 6px; --r: 10px; --r-lg: 14px; --r-pill: 999px;
-  --shadow-1: 0 1px 2px rgba(21, 35, 63, .08), 0 1px 1px rgba(21, 35, 63, .04);
-  --shadow-2: 0 8px 28px rgba(21, 35, 63, .18);
+  --shadow-1: 0 1px 2px rgba(29, 31, 35, .08), 0 1px 1px rgba(29, 31, 35, .04);
+  --shadow-2: 0 8px 28px rgba(29, 31, 35, .18);
   /* touch */
   --target: 44px;
 }
@@ -50,33 +52,33 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #0f1522;
-    --surface: #172030;
-    --surface-2: #1f2a3d;
-    --ink: #e8eef8;
-    --ink-2: #c3cede;
-    --muted: #a3b0c6;
-    --line: #2e3b52;
-    --line-strong: #66789a;
-    --accent: #7fb0ff;
-    --accent-ink: #0f1522;
-    --accent-soft: #1d2f52;
-    --accent-soft-ink: #b9d3ff;
+    --bg: #131416;
+    --surface: #1b1c1f;
+    --surface-2: #25272b;
+    --ink: #ececee;
+    --ink-2: #c8c9cd;
+    --muted: #a5a7ad;
+    --line: #33353a;
+    --line-strong: #6f727a;
+    --accent: #d7d8dc;
+    --accent-ink: #131416;
+    --accent-soft: #3a3d43;
+    --accent-soft-ink: #f2f2f4;
     --ok: #6fd69a;
     --ok-soft: #173826;
     --ok-bar: #3fbf73;
     --warn: #f4c46a;
     --warn-soft: #3a2c10;
     --warn-bar: #e0a100;
-    --neutral: #b3bdcc;
-    --neutral-soft: #263247;
-    --neutral-bar: #6c7a90;
-    --danger: #ff9a92;
-    --danger-soft: #3d1a1a;
-    --danger-ink: #0f1522;
+    --neutral: #b8bac0;
+    --neutral-soft: #2a2c31;
+    --neutral-bar: #75787f;
+    --danger: #ff8597;
+    --danger-soft: #3d1720;
+    --danger-ink: #131416;
     --flag: #d3a6f5;
     --flag-soft: #2f2042;
-    --focus: 0 0 0 3px #0f1522, 0 0 0 6px #7fb0ff;
+    --focus: 0 0 0 3px #131416, 0 0 0 6px #d7d8dc;
     --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
     --shadow-2: 0 8px 28px rgba(0, 0, 0, .55);
   }

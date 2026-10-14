@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Interview Assistant</title>
+  <link rel="icon" type="image/png" href="/static/img/favicon.png">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/pages.css">
+</head>
+<body>
+  <!-- Served by app/access.py, which fills in the two placeholders. No script: the form posts to /login. -->
+  <header class="appbar">
+    <span class="brand"><picture><source srcset="/static/img/softsquare-wordmark-dark.png" media="(prefers-color-scheme: dark)"><img class="logo" src="/static/img/softsquare-wordmark.png" alt="Softsquare"></picture><span class="product">Interview Assistant</span></span>
+  </header>
+  <main class="page login" id="content">
+    <h1>Sign in</h1>
+    <p>This test version is shared with a passcode. Ask the person who sent you the link for it.</p>
+    <form method="post" action="/login">
+      <input type="hidden" name="next" value="{{next}}">
+      <div class="field">
+        <label for="passcode">Passcode</label>
+        <input type="password" id="passcode" name="passcode" autocomplete="current-password" required autofocus>
+        {{error}}
+      </div>
+      <button type="submit" class="primary">Sign in</button>
+    </form>
+    <p class="muted">Use fictional details only. Sessions you run here are saved and visible to everyone with the passcode.</p>
+  </main>
+  <footer class="appfooter">Built by <picture><source srcset="/static/img/softsquare-agentic-dark.png" media="(prefers-color-scheme: dark)"><img class="logo" src="/static/img/softsquare-agentic.png" alt="Softsquare, The Agentic AI Experts"></picture></footer>
+</body>
+</html>

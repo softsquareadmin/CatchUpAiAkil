@@ -1,0 +1,32 @@
+# Render Blueprint for the shared test deployment (README "Deploy"). Free plan: sleeps after 15 minutes without
+# traffic and its disk is wiped on every restart, so sessions and saved pack versions are synced to Supabase.
+# Values marked `sync: false` are asked for when the Blueprint is created; they are never stored in the repo.
+services:
+  - type: web
+    name: interview-assistant
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: SYNC_ENABLED          # copy files to Supabase (local runs leave this off)
+        value: "true"
+      - key: MAX_TOTAL_COST_USD    # all sessions together; paid models stop at this total
+        value: "10"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: APP_PASSCODE
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

@@ -15,6 +15,37 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
+class SpendTotal:
+    """Cost of every session under one sessions folder, for the deployment's overall cap (MAX_TOTAL_COST_USD).
+    Summed from the ledgers once, then kept up to date by Ledger.record; 0 = no cap."""
+
+    def __init__(self, sessions_dir: Path, cap_usd: float):
+        self.sessions_dir, self.cap_usd = Path(sessions_dir), cap_usd
+        self.refresh()
+
+    def refresh(self) -> None:
+        total = 0.0
+        for path in self.sessions_dir.glob("*/ledger.jsonl"):
+            for line in path.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    total += json.loads(line).get("cost_usd") or 0.0
+        self.total_usd = total
+
+    def reached(self) -> bool:
+        return bool(self.cap_usd) and self.total_usd >= self.cap_usd
+
+    def message(self) -> str:
+        return (f"This deployment has spent ${self.total_usd:.2f} of its ${self.cap_usd:.2f} limit. Paid models are "
+                "stopped; the offline models still work.")
+
+
+TOTALS: dict[Path, SpendTotal] = {}  # sessions folder -> overall total, registered by the app at startup
+
+
+def overall_for(sessions_dir: Path) -> SpendTotal | None:
+    return TOTALS.get(Path(sessions_dir).resolve())
+
+
 class LedgerRow(BaseModel):
     ts: str
     session_id: str
@@ -63,9 +94,13 @@ class Ledger:
         self.total_usd = 0.0
         self.rows: list[LedgerRow] = []
         self.on_record = None  # optional callback(row), e.g. to update the experiment bar
+        self.overall = overall_for(self.path.parent.parent)
 
     def check_budget(self) -> None:
-        """Call before every paid call. Raises once the session total passes the cap."""
+        """Call before every paid call. Raises once the session total passes the cap, or the deployment's total
+        reaches its cap."""
+        if self.overall is not None and self.overall.reached():
+            raise BudgetExceeded(self.overall.message())
         if self.total_usd > self.max_cost_usd:
             raise BudgetExceeded(
                 f"Session cost ${self.total_usd:.4f} passed the cap of ${self.max_cost_usd:.2f}. "
@@ -90,6 +125,8 @@ class Ledger:
         with self.path.open("a", encoding="utf-8") as f:
             f.write(row.model_dump_json() + "\n")
         self.total_usd += cost
+        if self.overall is not None:
+            self.overall.total_usd += cost
         self.rows.append(row)
         if self.on_record is not None:
             self.on_record(row)

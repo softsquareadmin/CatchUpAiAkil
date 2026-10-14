@@ -231,11 +231,13 @@ def test_report_makes_no_external_requests():
     _, page = run(make("cps_replay_sample", transcript=True))
     p = Attrs()
     p.feed(page)
-    assert p.urls and all(u.startswith("#") for u in p.urls)  # only links into the transcript appendix
+    logo = [u for u in p.urls if u.startswith("data:image/png;base64,")]  # the embedded logo makes no request
+    assert len(logo) == 1 and page.count("<img") == 1
+    assert all(u.startswith("#") for u in p.urls if u not in logo)  # only links into the transcript appendix
     css = "".join(re.findall(r"<style>(.*?)</style>", page, re.S))
     assert "@import" not in css and "url(" not in css
     assert p.tags.count("script") == 1 and "src=" not in re.search(r"<script[^>]*>", page).group(0)
-    assert "<link" not in page and "<img" not in page and "<iframe" not in page
+    assert "<link" not in page and "<iframe" not in page
 
 
 def test_everything_from_the_transcript_and_model_is_escaped():

@@ -10,11 +10,14 @@ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconn
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import remote_store
+from app.access import PasscodeGate, access_from_env
 from app.adapters.transcribers.replay import load_script, parse_paste, paste_to_script, suggest_mapping
 from app.audio_file import MAX_UPLOAD_BYTES, AudioFileError, decode, ffmpeg_path
 from app.audit import AuditLog
 from app.config import ROOT, SECRET_NAMES, Settings, load_settings
 from app.import_template import TemplateError, convert
+from app.ledger import TOTALS, SpendTotal
 from app.pack import PackError, list_packs, load_pack, pack_from_dict
 from app import pack_editor
 from app import report as cost_report
@@ -31,9 +34,23 @@ PACK_FILE = re.compile(r"^[A-Za-z0-9_.-]+\.yaml$")
 SPEEDS = (0, 1, 2)  # 0 = instant
 SESSION_ID = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 RESUME_GRACE_S = 120  # a dropped browser connection keeps its session this long
+SYNC_EVERY_S = 3  # write-through to Supabase when sync is on (SPEC-deploy)
 
-def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "sessions") -> FastAPI:
+def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "sessions", env: dict | None = None,
+               sync: remote_store.Sync | None = None) -> FastAPI:
+    """`env` (default: .env plus the process environment) turns on Supabase sync (SYNC_ENABLED) and the passcode
+    (APP_PASSCODE). Live sessions are held in this process's memory: run one process only."""
     settings = settings or load_settings()
+    env = remote_store.read_env() if env is None else env
+    Path(sessions_dir).mkdir(parents=True, exist_ok=True)
+    access = access_from_env(env)  # raises if the passcode is set without SESSION_SECRET
+    sync = sync or remote_store.from_env(Path(sessions_dir), AUDIT_DIR, PACKS_DIR, env)
+    sync.start()  # before the default pack loads; saved pack versions and past sessions come back from Supabase
+    spend = SpendTotal(sessions_dir, settings.max_total_cost_usd)
+    TOTALS.pop(Path(sessions_dir).resolve(), None)
+    if settings.max_total_cost_usd:
+        TOTALS[Path(sessions_dir).resolve()] = spend
+    sync.on_pull = spend.refresh
     pack = load_pack(ROOT / settings.pack)  # the default pack; raises PackError with a clear message if invalid
     default_file = (ROOT / settings.pack).name
     ffmpeg = ffmpeg_path()  # checked once at startup; the UI explains when it is missing (M8)
@@ -56,18 +73,45 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
                 return load_pack(PACKS_DIR / row["file"])
         return pack
     live: dict[str, tuple[Session, asyncio.Task | None]] = {}  # session id -> (session, pending close task)
+    wake: list[asyncio.Event] = []  # set by save_soon(); created inside the running loop
+
+    def save_soon() -> None:
+        """Push changed files now instead of at the next tick (session closed, review, export, pack saved)."""
+        if wake:
+            wake[0].set()
+
+    async def sync_loop(event: asyncio.Event) -> None:
+        while True:
+            try:
+                await asyncio.wait_for(event.wait(), SYNC_EVERY_S)
+            except TimeoutError:
+                pass
+            event.clear()
+            try:
+                await asyncio.to_thread(sync.flush)  # urllib blocks: keep it off the event loop
+            except Exception:  # never stop syncing; the error shows in /health
+                remote_store.log.exception("storage: flush failed")
 
     @asynccontextmanager
     async def lifespan(_app):
+        task = None
+        if sync.enabled:
+            wake.append(asyncio.Event())
+            task = asyncio.create_task(sync_loop(wake[0]))
         yield
         for session, closer in list(live.values()):
             if closer:
                 closer.cancel()
             await session.close()
         live.clear()
+        if task:
+            task.cancel()
+            await asyncio.to_thread(sync.flush)  # last copy before the host stops
 
     app = FastAPI(title="Voice Case Notetaker PoC", lifespan=lifespan)
-    app.state.settings, app.state.pack, app.state.live = settings, pack, live
+    app.state.settings, app.state.pack, app.state.live, app.state.sync = settings, pack, live, sync
+    if access:
+        app.add_middleware(PasscodeGate, passcode=access[0], secret=access[1])
 
     @app.get("/health")
     def health():
@@ -78,6 +122,10 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
             "gate_model": settings.models["gate"],
             "keys_present": {n: settings.has_key(n) for n in SECRET_NAMES},
             "ffmpeg": bool(ffmpeg),
+            "storage": sync.status,  # "supabase" | "local" | "error" (then storage_error says why)
+            "storage_error": sync.error,
+            "access": "passcode" if access else "open",
+            "spend": {"total_usd": round(spend.total_usd, 4), "cap_usd": settings.max_total_cost_usd or None},
         }
 
     # ---- pages (M12): plain HTML, each with its own script; shared header, tokens and components ----
@@ -136,6 +184,7 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
                                    AUDIT_DIR)
         if not out["ok"]:
             return JSONResponse(out, status_code=422)
+        save_soon()
         return out
 
     @app.post("/api/packs/import")
@@ -168,6 +217,8 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
         except ValueError as e:
             raise HTTPException(400, str(e)) from None
         real = bool(body.get("real"))
+        if real and spend.reached():
+            return {"ok": False, "error": spend.message()}
         if real and not body.get("confirm"):
             return {"ok": True, "needs_confirm": True, "estimate": pack_editor.estimate_cost(
                 sessions_dir, settings.models, len(lines), len(pk.checklist), settings.window_utterances)}
@@ -249,6 +300,7 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
         if err:
             raise HTTPException(400, err)
         (d / "draft_note.json").write_text(json.dumps(draft, indent=1), encoding="utf-8")
+        save_soon()
         return {"ok": True, "review": {"state": "ready", "draft": draft, "model": draft.get("model"), "error": None},
                 **review_page_extras(d, draft, pack_by_ref(draft.get("pack")), read_utterances(d))}
 
@@ -292,9 +344,11 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
         headers = {} if view else {"Content-Disposition": f'attachment; filename="{name}"'}
         if fmt == "json":
             (d / "export.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+            save_soon()
             return JSONResponse(report, headers=headers)
         page = render_html(report)
         (d / "report.html").write_text(page, encoding="utf-8")
+        save_soon()
         return HTMLResponse(page, headers=headers)
 
     @app.post("/api/sessions/{sid}/audio")
@@ -370,6 +424,7 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
         if not session.started_input() and session.review_state == "none":  # e.g. the user switched packs
             live.pop(session.id, None)
             await session.close()
+            save_soon()
             return
 
         async def close_later():
@@ -378,6 +433,7 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
                 await asyncio.sleep(1)
             live.pop(session.id, None)
             await session.close()
+            save_soon()
         live[session.id] = (session, asyncio.create_task(close_later()))
 
     return app

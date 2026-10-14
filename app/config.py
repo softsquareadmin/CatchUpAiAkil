@@ -54,6 +54,7 @@ class Settings(BaseModel):
     store_audio: bool = False
     limits: Limits = Limits()
     max_session_cost_usd: float = 1.00
+    max_total_cost_usd: float = 0.0  # all sessions together (a shared deployment, MAX_TOTAL_COST_USD); 0 = no cap
     pack: str = "packs/cps_interview_v2.yaml"
     secrets: dict[str, SecretStr] = {}
 

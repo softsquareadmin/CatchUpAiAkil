@@ -1,0 +1,16 @@
+# Render builds from git, which already leaves these out; this also protects a local `docker build`.
+.env
+.env.*
+!.env.example
+.venv/
+.git/
+sessions/
+audit_logs/
+assets/
+tests/fixtures/audio/
+docs/
+**/__pycache__/
+.pytest_cache/
+.DS_Store
+SPEC*.md
+*.zip
