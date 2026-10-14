@@ -65,6 +65,7 @@ class TopicState(BaseModel):
     evidence: list[Evidence] = []
     updated_at_ms: int = 0
     rationale_short: str = ""
+    recorded_by_user: bool = False  # the user recorded this status (consent tap): the gate and review leave it alone
 
 
 class TopicUpdate(BaseModel):

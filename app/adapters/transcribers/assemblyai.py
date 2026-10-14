@@ -37,8 +37,9 @@ def split_by_speaker(text: str, words: list[dict], min_words: int = MIN_SPLIT_WO
     when there is nothing to split (no word labels, or one speaker). Words without a usable label (missing or PENDING)
     go with the words after them (at a change of voice AssemblyAI needs a moment of the new voice before it labels
     it), or with the words before them at the end of the turn. A run shorter than `min_words` joins the run after it (a reply often opens with
-    "Okay, great."), or the one before when it is last. The turn's formatted text is cut at the same word positions
-    when it lines up with the words one to one; otherwise each part is the words' own text."""
+    "Okay, great."), or the one before when it is last, except a whole sentence between two other runs (quick replies
+    such as "...recorded. | I consent. | I consent. | Jill, ..."; 2026-10-14). The turn's formatted text is cut at the
+    same word positions when it lines up with the words one to one; otherwise each part is the words' own text."""
     labels = [w.get("speaker") if w.get("speaker") not in (None, "", "PENDING") else None for w in words]
     if not any(labels):
         return []
@@ -54,8 +55,19 @@ def split_by_speaker(text: str, words: list[dict], min_words: int = MIN_SPLIT_WO
             runs[-1][1] += 1
         else:
             runs.append([l, 1])
+    tokens = text.split()
+    aligned = len(tokens) == len(words)
+    shown = tokens if aligned else [str(w.get("text", "")) for w in words]  # formatted text carries the punctuation
+
+    def whole_sentence(k: int) -> bool:  # run k sits between two runs, starts and ends a sentence
+        if k == 0 or k == len(runs) - 1:
+            return False
+        start = sum(r[1] for r in runs[:k])
+        ends = lambda i: shown[i].rstrip("\"')").endswith((".", "?", "!"))  # noqa: E731
+        return ends(start - 1) and ends(start + runs[k][1] - 1)
+
     while len(runs) > 1:
-        short = next((i for i, r in enumerate(runs) if r[1] < min_words), None)
+        short = next((i for i, r in enumerate(runs) if r[1] < min_words and not whole_sentence(i)), None)
         if short is None:
             break
         into = short + 1 if short + 1 < len(runs) else short - 1
@@ -70,8 +82,6 @@ def split_by_speaker(text: str, words: list[dict], min_words: int = MIN_SPLIT_WO
         runs = merged
     if len(runs) < 2:
         return []
-    tokens = text.split()
-    aligned = len(tokens) == len(words)
     parts, i = [], 0
     for label, n in runs:
         ws = words[i:i + n]
@@ -90,7 +100,7 @@ class AssemblyAITranscriber:
                  elapsed_ms: Callable[[], int], on_status: Status | None = None, sample_rate: int = 16000,
                  speaker_labels: bool = True, max_speakers: int = 3, max_retries: int = 5,
                  backoff_s: tuple[float, ...] = (0.5, 1, 2, 4, 8), connect=_connect, source: str = "mic",
-                 split_turns: bool = True):
+                 split_turns: bool = True, turn_silence_ms: tuple[int | None, int | None] = (None, None)):
         self.api_key, self.model, self.ledger = api_key, model, ledger
         self.speaker_for, self.elapsed_ms = speaker_for, elapsed_ms
         self.on_status = on_status
@@ -98,6 +108,7 @@ class AssemblyAITranscriber:
         self.max_retries, self.backoff_s, self.connect = max_retries, backoff_s, connect
         self.source = source  # "mic" or "file" (M8): stamped on the utterances
         self.split_turns = split_turns  # cut a final turn where the word-level speaker changes
+        self.turn_silence_ms = turn_silence_ms  # (min_turn_silence, max_turn_silence); None = AssemblyAI's default
         self.session_id, self.emit = "", None
         self.ws = None
         self.task: asyncio.Task | None = None
@@ -120,6 +131,9 @@ class AssemblyAITranscriber:
         q = {"speech_model": self.model, "sample_rate": self.sample_rate, "encoding": "pcm_s16le"}
         if self.speaker_labels:
             q.update(speaker_labels="true", max_speakers=self.max_speakers)
+        for key, ms in zip(("min_turn_silence", "max_turn_silence"), self.turn_silence_ms):
+            if ms is not None:
+                q[key] = ms
         return f"{URL}?{urlencode(q)}"
 
     async def _status(self, state: str, detail: str = "") -> None:

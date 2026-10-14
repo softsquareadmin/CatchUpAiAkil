@@ -420,6 +420,8 @@ async def handle(session: Session, msg: dict) -> str | None:
         return await session.add_note(str(msg.get("text", "")))
     elif kind == "consent":
         await session.consent_decision(stop=msg.get("decision") == "stop")
+    elif kind == "consent_record":
+        return await session.record_consent([str(r) for r in msg.get("roles") or []])
     elif kind == "end":
         await session.before_leave("end_button")
     elif kind == "end_confirm":

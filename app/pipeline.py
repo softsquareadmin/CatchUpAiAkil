@@ -142,6 +142,7 @@ class Session:
         self.draft: dict | None = None  # post-interview review (draft_note.json)
         self.review_state = "none"  # none | running | ready | failed
         self.stopped_at_ms: int | None = None  # the clock's value when the tool stopped
+        self.consent_recorded: list[str] | None = None  # roles the user recorded as consenting (None = not recorded)
         self.review_error: str | None = None
         self.ledger.on_record = lambda row: self._spawn(self.send({"type": "experiment", "experiment": self.experiment_status()}))
         self.audit.write("system", "session_start", experiment=settings.experiment_label,
@@ -182,6 +183,7 @@ class Session:
                 "cues": [{"cue": c.model_dump(), "level": self.board.level.get(c.id, "")} for c in self.board.cues.values()
                          if c.state == "active" and (c.kind == "flag" or self.board.active.get(c.topic_id) == c.id)],
                 "notes": self.notes, "stopped": self.stopped, "mic": self.mic_status(),
+                "consent_recorded": self.consent_recorded,
                 "review": self.review_message(), "experiment": self.experiment_status(), "audio_file": self.file_info,
                 "health": self.health_snapshot()}
 
@@ -367,6 +369,8 @@ class Session:
     async def apply_gate_result(self, result: GateResult, window: list[Utterance], latency_ms: int,
                                 stage: str = "final") -> None:
         transcript = {u.id: u for u in self.store.utterances}
+        result.updates = [up for up in result.updates  # a status the user recorded is not the gate's to change
+                          if not (self.checklist.get(up.item_id) and self.checklist[up.item_id].recorded_by_user)]
         self._keep_user_clears(result.updates)
         changed, rejected = apply_updates(self.checklist, result.updates, transcript, self.elapsed_ms())
         flags = [f for f in result.flags if validate(f.evidence, transcript)]
@@ -587,6 +591,31 @@ class Session:
         self.events.write("note", **note)
         self.audit.write("user", "note_added", note_id=note["id"])
         await self.send({"type": "note", "note": note})
+        return None
+
+    async def record_consent(self, roles: list[str]) -> str | None:
+        """The user records who consented (a tap, not the transcript: short replies such as "I consent" are easily
+        mis-heard or given the wrong speaker). Sets the consent topic: covered when every interviewee consented,
+        partial when some did. The gate and the review then leave it alone; refusal detection still runs."""
+        ct = self.pack.special_topics.consent_topic
+        if not ct:
+            return "this interview type has no consent topic"
+        if self.stopped:
+            return f"The tool is stopped ({self.stopped})."
+        subjects = self.pack.subject_ids
+        if any(r not in subjects for r in roles):
+            return f"consent roles must be among: {', '.join(subjects)}"
+        given = [r for r in subjects if r in roles]
+        status = "covered" if len(given) == len(subjects) else "partial" if given else "not_covered"
+        old = self.checklist.get(ct, TopicState(item_id=ct))
+        names = ", ".join(self.pack.role_label(r) for r in given) or "nobody yet"
+        s = TopicState(item_id=ct, status=status, follow_up="none", evidence=old.evidence, updated_at_ms=self.elapsed_ms(),
+                       rationale_short=f"Recorded by the {self.pack.user_role.label.lower()}: {names}", recorded_by_user=True)
+        self.checklist[ct], self.consent_recorded = s, given
+        self.audit.write("user", "consent_recorded", roles=given, status=status)
+        self.events.write("topic_update", state=s.model_dump(), stage="user")
+        await self.send({"type": "topic_update", "state": s.model_dump()})
+        await self.after_topic_changes([s])
         return None
 
     async def consent_decision(self, stop: bool) -> None:
@@ -828,7 +857,8 @@ class Session:
             self.settings.secrets["ASSEMBLYAI_API_KEY"].get_secret_value(), model, self.ledger,
             speaker_for=self.speaker_for, elapsed_ms=self.elapsed_ms,
             speaker_labels=self.settings.stt_speaker_labels, max_speakers=self.settings.stt_max_speakers,
-            source=source, split_turns=self.settings.stt_split_turns)
+            source=source, split_turns=self.settings.stt_split_turns,
+            turn_silence_ms=(self.settings.stt_min_turn_silence_ms, self.settings.stt_max_turn_silence_ms))
         mic.on_status = lambda state, detail="": self._mic_status(state, detail, mic)
         return mic, ""
 

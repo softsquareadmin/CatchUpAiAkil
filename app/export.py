@@ -109,7 +109,9 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
         check = ("the user stopped the tool" if "consent_refusal_confirmed" in acts else
                  "raised; the user chose to continue" if "consent_refusal_not_confirmed" in acts else
                  "raised, no answer recorded" if "consent_refusal_detected" in acts else "none raised")
-        consent = {"topic": t["label"] if t else ct, "status": t["status"] if t else "not_covered", "refusal_check": check}
+        rec = [a for a in audit if a["action"] == "consent_recorded"]
+        consent = {"topic": t["label"] if t else ct, "status": t["status"] if t else "not_covered", "refusal_check": check,
+                   "recorded": [pack.role_label(r) for r in rec[-1]["details"]["roles"]] if rec else None}
 
     report = {
         "report_format_version": REPORT_FORMAT_VERSION, "sample": sample,
@@ -327,7 +329,9 @@ def render_html(r: dict) -> str:
                        + "".join(f'<li class="unrev">{e(f["note"])}{mark("proposed")}{quote_list(f["evidence"])}</li>'
                                  for f in r["flags"]) + "</ul>")
         if c := r["consent"]:
-            out.append(f'<h4>Consent</h4><p>{e(c["topic"])}: {STATUS[c["status"]]}. Refusal check: '
+            who = "" if c.get("recorded") is None else \
+                f' Recorded by the {e(user)}: {e(", ".join(c["recorded"]) or "nobody")}.'
+            out.append(f'<h4>Consent</h4><p>{e(c["topic"])}: {STATUS[c["status"]]}.{who} Refusal check: '
                        f'{e(c["refusal_check"])}.</p>')
     if r.get("transcript"):
         out.append('<h2>Transcript</h2><section class="transcript">')

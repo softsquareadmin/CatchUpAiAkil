@@ -21,7 +21,7 @@ function setBadge(id, text, kind = "", title = "") {
 }
 mountHeader("interview", [
   el("span", { id: "rec", className: "badge", title: "Microphone" }, "Mic off"),
-  el("span", { id: "consent", className: "badge", title: "Consent to recording, from the checklist" }, "Consent: not yet"),
+  el("button", { id: "consent", type: "button", className: "badge", title: "Consent to recording. Tap to record who consented." }, "Consent: not yet"),
   el("span", { id: "conn", className: "badge", title: "Connection to the server" }, "connecting"),
   el("span", { id: "health", className: "badge badge-ok", role: "status", "aria-live": "polite", title: "Live analysis" }, "✓ Analysis OK"),
 ]);
@@ -61,6 +61,7 @@ function onMessage(msg) {
       state.begun = !!msg.begun;
       state.sessionStart = state.begun ? Date.now() - (msg.elapsed_ms || 0) : null;
       state.stoppedAt = msg.stopped ? Date.now() : null;  // a stopped interview's clock stays where it stopped
+      state.consentRecorded = msg.consent_recorded || null;
       tick();
       state.sessionId = msg.session_id;
       storeSession(msg.session_id);
@@ -333,6 +334,24 @@ function renderConsent() {
   b.textContent = text;
   b.className = `badge ${cls}`;
 }
+
+// The user records who consented with a tap: short replies such as "I consent" are easily missed or mislabelled.
+$("consent").addEventListener("click", () => {
+  if (!state.pack.consent_topic) return;
+  if (!state.begun || state.stopped) { toast(state.stopped ? "The interview has ended." : "Press Start interview first.", "info"); return; }
+  const subjects = state.pack.roles.filter((r) => r.kind === "subject");
+  const boxes = subjects.map((r) => {
+    const cb = el("input", { type: "checkbox", id: `consent-${r.id}` });
+    cb.checked = (state.consentRecorded || []).includes(r.id);
+    return { r, cb };
+  });
+  showDialog("Record consent", [para("Who has consented to the recording?"),
+    el("div", { className: "consent-boxes" }, ...boxes.map(({ r, cb }) => el("label", { htmlFor: cb.id }, cb, ` ${r.label}`)))],
+    "Save", "Cancel", () => {
+      state.consentRecorded = boxes.filter((b) => b.cb.checked).map((b) => b.r.id);
+      send({ type: "consent_record", roles: state.consentRecorded });
+    }, () => {});
+});
 
 function askConsent(msg) {
   state.consentAsk = true;

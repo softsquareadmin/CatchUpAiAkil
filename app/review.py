@@ -505,7 +505,9 @@ def build_topic_results(raw: dict, pack: UseCasePack, transcript: dict[str, Utte
                 evidence.append(e)
 
         status, review_status, reason_txt = live.status, None, (r.get("status_reason") or "").strip()
-        if r.get("status") in POINTS and r["status"] != live.status:
+        if live.recorded_by_user and r.get("status") in POINTS and r["status"] != live.status:
+            drop("status", "recorded_by_user")  # the user recorded it (consent tap): not the model's to change
+        elif r.get("status") in POINTS and r["status"] != live.status:
             why = (not reason_txt and "status_change_without_reason") or \
                   (POINTS[r["status"]] > POINTS[live.status] and not model_ev and "status_raised_without_evidence") or \
                   ((m := lint.note(reason_txt)) and f"lint: {m}")
@@ -535,7 +537,8 @@ def build_topic_results(raw: dict, pack: UseCasePack, transcript: dict[str, Utte
                 follow = ""
         out.append({"topic_id": c.id, "label": c.label, "required": c.required, "status": status,
                     "live_status": live.status, "review_status": review_status,
-                    "status_reason": reason_txt if review_status else "", "status_by": "review" if review_status else "live",
+                    "status_reason": reason_txt if review_status else "",
+                    "status_by": "user" if live.recorded_by_user else "review" if review_status else "live",
                     "evidence": [e.model_dump() for e in evidence],
                     "summary": _part(summary) if summary else None, "missing": _part(missing) if missing else None,
                     "follow_up": _part(follow) if follow else None})

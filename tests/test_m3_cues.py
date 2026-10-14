@@ -660,3 +660,41 @@ def test_skipping_the_users_lines_reads_them_with_the_next_answer(tmp_path):
         await say(s, AFRAID)
     asyncio.run(go())
     assert s.decider.calls == [["u0001", "u0002"]]  # the question is read with the answer
+
+
+# ---- consent recorded with a tap (2026-10-14) ----
+
+def test_the_user_records_consent_and_the_gate_cannot_change_it(tmp_path):
+    script = {"u0001": upd("recording_consent", "partial", "none", "u0001", "I consent")}
+    s, sent = make_session(tmp_path, script)
+
+    async def go():
+        await s.begin()
+        assert await s.record_consent(["parent"]) is None
+        assert s.checklist["recording_consent"].status == "partial"
+        assert await s.record_consent(["parent", "child"]) is None
+        await say(s, (1, "parent", "I consent"))  # the gate's partial does not replace what the user recorded
+        assert await s.record_consent(["worker"])  # not an interviewee
+    asyncio.run(go())
+    st = s.checklist["recording_consent"]
+    assert st.status == "covered" and st.recorded_by_user and "Parent, Child" in st.rationale_short
+    audit = [json.loads(l) for l in (tmp_path / s.id / "audit.jsonl").read_text().splitlines()]
+    assert [a["details"]["roles"] for a in audit if a["action"] == "consent_recorded"] == [["parent"], ["parent", "child"]]
+    assert s.hello()["consent_recorded"] == ["parent", "child"]
+
+
+def test_the_review_keeps_the_recorded_consent_and_the_report_says_who(tmp_path):
+    from app.export import build_report, load_session, render_html
+    from app.review import build_topic_results
+    s, _ = make_session(tmp_path)
+    asyncio.run(s.begin())
+    asyncio.run(s.record_consent(["parent", "child"]))
+    raw = {"topic_results": [{"topic_id": "recording_consent", "status": "partial", "status_reason": "only one said it",
+                              "summary": "", "missing": [], "suggested_follow_up": "", "evidence": []}]}
+    topics, rej = build_topic_results(raw, PACK, {}, dict(s.checklist))
+    t = next(t for t in topics if t["topic_id"] == "recording_consent")
+    assert t["status"] == "covered" and t["status_by"] == "user"
+    assert any(r["reason"] == "recorded_by_user" for r in rej)
+    (tmp_path / s.id / "draft_note.json").write_text(json.dumps({"topics": topics, "items": []}))
+    html = render_html(build_report(load_session(tmp_path / s.id), PACK))
+    assert "Recorded by the worker: Parent, Child." in html

@@ -43,6 +43,8 @@ class Settings(BaseModel):
     cue_reasoning_effort: str | None = "minimal"  # Gemini 3 cannot turn reasoning off; null = not sent
     stt_speaker_labels: bool = True
     stt_max_speakers: int = 3
+    stt_min_turn_silence_ms: int | None = None  # AssemblyAI turn end; None = its default (640 with speaker labels)
+    stt_max_turn_silence_ms: int | None = None  # ... (768 with speaker labels)
     stt_split_turns: bool = True  # split a final turn where AssemblyAI's word-level speaker label changes
     store_audio: bool = False
     limits: Limits = Limits()

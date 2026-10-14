@@ -261,6 +261,7 @@ Any setting can be overridden for one run with an environment variable (upper ca
 | `cue_reasoning_effort` | `minimal` | Reasoning effort sent to the cue model; `null` = not sent |
 | `stt_speaker_labels` | `true` | Ask AssemblyAI for voice labels (adds $0.12 per hour) |
 | `stt_max_speakers` | `3` | Most voices to label |
+| `stt_min_turn_silence_ms`, `stt_max_turn_silence_ms` | `null` | AssemblyAI turn ends (null = its defaults, 640 / 768 ms with speaker labels). Lower values separate quick replies but short turns still get the previous voice's label and long answers are cut into more lines (tested 2026-10-14) |
 | `stt_split_turns` | `true` | Split a turn that holds two speakers where AssemblyAI's word-level labels change |
 | `store_audio` | `false` | Keep the audio in the session folder (audited) |
 | `max_session_cost_usd` | `1.00` | Spending cap per session |

@@ -599,3 +599,24 @@ def test_the_clock_stops_when_the_interview_ends(tmp_path):
         assert asyncio.run(go()) == 30000
     finally:
         pipeline.time.monotonic = real
+
+
+def test_split_keeps_quick_whole_sentence_replies_between_other_speakers():
+    """2026-10-14: "I consent." x2 inside the user's turn were folded into it (and runs under 3 words merged)."""
+    from app.adapters.transcribers.assemblyai import split_by_speaker
+    text, words = labelled([("A", "Please consent to being recorded."), ("B", "I consent."), ("C", "I consent."),
+                            ("A", "Jill, how old are you?")])
+    assert [(l, t) for l, t, _ in split_by_speaker(text, words)] == [
+        ("A", "Please consent to being recorded."), ("B", "I consent."), ("C", "I consent."), ("A", "Jill, how old are you?")]
+    text, words = labelled([("A", "I worked at the power"), ("B", "company."), ("A", "Then billing.")])
+    assert split_by_speaker(text, words) == []  # not a whole sentence: still label noise
+
+
+def test_turn_silence_settings_go_on_the_connection_only_when_set():
+    from urllib.parse import parse_qs, urlparse
+    t = AssemblyAITranscriber("k", "universal-3-6-pro", None, speaker_for=lambda l: "unknown", elapsed_ms=lambda: 0)
+    assert "min_turn_silence" not in t.url()
+    t = AssemblyAITranscriber("k", "universal-3-6-pro", None, speaker_for=lambda l: "unknown", elapsed_ms=lambda: 0,
+                              turn_silence_ms=(160, 400))
+    q = parse_qs(urlparse(t.url()).query)
+    assert q["min_turn_silence"] == ["160"] and q["max_turn_silence"] == ["400"]
