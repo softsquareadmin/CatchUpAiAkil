@@ -416,6 +416,21 @@ Findings:
   - When the review is already written, the draft's consent topic follows: status set by the user via `review_actions.topic_status` (audited, coverage recomputed), its follow-up question dropped once consent is complete, and the open-topic entry set to no follow-up. The draft is saved.
   - A review still running reads the recorded status when it finishes (it uses the live checklist then).
   - Checked in headless Chromium (end, then tap the badge). 386 tests pass.
+- **Review page laid out like the report** (owner, 2026-10-14: "make the review page as similar to the output report as possible"). Rendering only.
+  - Server: `GET /api/sessions/{id}/review` also returns `layout`, live `flags`, `notes`, `consent`, `follow_up_levels`, `missing_prefix` and `not_stated`, from helpers moved out of `build_report` (`export.layout`, `live_flags`, `consent_line`, `notes_of`, `follow_up_levels`, `review_page_extras`). The report is byte-identical before and after the move (checked on `e0d7`, with and without unreviewed items and the transcript).
+  - `review.js` order matches the report: the "X of N items reviewed" line, the speaker-label note, coverage, jump links, lead sections (Safety Flags with the live flags folded in, Child's Direct Statements), topics ("Needs follow-up" open with required ones first, "Covered" closed, each topic a closed one-line row with its suggested follow-up), the accounts table (stacked when the review column is narrower than 760 px, via a container query), then summary, timeline and next steps closed with counts, the overall assessment, notes and consent. **Expand all / Collapse all**; printing opens everything.
+  - Each full quote is shown once, as on the report; elsewhere a "m:ss · uNNNN" link jumps to the transcript line.
+  - Differences from the report, because this page is where items get reviewed:
+    - every item keeps its Accept / Edit / Reject / Undo, and rejected items stay visible (for Undo);
+    - the timeline is always listed, with a note when the report will leave it out;
+    - next-step options the report turns into "see" links are in a closed "Options that repeat a topic's follow-up" group, so they can still be accepted.
+  - Unreviewed items have a dashed outline, and the "Not reviewed" badge is gone. Each section's open or closed state survives the re-render after every decision.
+  - `POST /review` returns the same extras, so the consent line follows a status set on the page (tested, live and past session).
+  - Compact Accept / Edit / Reject only inside the wide accounts table. Stacked on a phone they keep the 44 px tap size. `check_ui_basics` passes; it also caught the interview page's consent badge button at 25 px, now 44 px.
+  - Job pack (`20261008-202340-d208`): no lead sections, so the topics come first; the overall assessment is now at the bottom, as on the report (it used to sit under the topics). No errors at 1280 or 390 px. The review count matches the report's `reviewed_count` (62 on `e0d7`). README screenshots `review.png` and `review-topic-card.png` regenerated (fake models).
+  - "From the checklist (not AI-written)" (not on the report) starts closed with a count (owner, 2026-10-14).
+  - Fixed on the way: the required-first sort of topics never ran on the review page (`gapsFirst` read `t.follow_up`, the part object, not the level).
+  - Checked on a copy of `e0d7` at 1280 and 390 px: no console errors, no sideways scroll, Safety Flags at 520 px from the top. Accepting an item leaves the other sections as they were; Expand all opens everything. The browser test now checks the order, the closed topic row and its open state after Accept. 387 tests pass.
 
 ## Pack change log (SPEC-M7 evaluation rule 4)
 - 2026-10-14 `cps_interview_v2` 0.5.0 -> 0.5.1 (SPEC-report-readability): `form` removed from `review.sections` (CatchUp has no form section; `form_schema` kept, the engine still supports forms); the review prompt's "proposed form field values with evidence" removed with it; new report layout fields `lead_sections: [custom.safety_flags, custom.child_direct_statements]` and `live_flags_into: custom.safety_flags`. Topics, definitions, guardrails and roles unchanged. Source: the spec. Version asserts in 3 tests updated; offline samples regenerated.

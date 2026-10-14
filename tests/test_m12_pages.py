@@ -58,10 +58,20 @@ def test_review_decisions_over_http_for_a_live_and_a_past_session(tmp_path):
     sid = run_interview(client)
     got = client.get(f"/api/sessions/{sid}/review").json()
     assert got["review"]["state"] == "ready" and got["pack"]["id"] == "cps_interview_v2" and got["utterances"]
+    # what the page needs to lay itself out like the report (2026-10-14)
+    assert got["layout"]["lead"] == ["custom.safety_flags", "custom.child_direct_statements"]
+    assert got["layout"]["flags_into"] == "custom.safety_flags" and got["layout"]["account_columns"]
+    assert isinstance(got["flags"], list) and isinstance(got["follow_up_levels"], dict) and got["consent"]
+    assert got["missing_prefix"] and got["not_stated"]
     item = got["review"]["draft"]["items"][0]
     r = client.post(f"/api/sessions/{sid}/review", json={"kind": "item", "id": item["id"], "action": "accept"})
     assert r.status_code == 200 and r.json()["review"]["draft"]["items"][0]["status"] == "accepted"
     assert client.post(f"/api/sessions/{sid}/review", json={"kind": "item", "id": "nope", "action": "accept"}).status_code == 400
+    for c in (client, None):  # the consent line follows a status set on the page (live session, then a past one)
+        c = c or TestClient(app_for(tmp_path))
+        status = "partial" if c.get(f"/api/sessions/{sid}/review").json()["consent"]["status"] != "partial" else "covered"
+        out = c.post(f"/api/sessions/{sid}/review", json={"kind": "status", "topic_id": "recording_consent", "status": status}).json()
+        assert out["consent"]["status"] == status and out["layout"]["lead"]
 
     # a restart: a new app on the same folder has no live sessions, so the decisions work on the saved draft
     client2 = TestClient(app_for(tmp_path))

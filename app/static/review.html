@@ -21,7 +21,10 @@
 
     <div class="review-layout">
       <div>
-        <p class="hint">Nothing is final until you accept it. Only accepted or edited items are exported. Tap a quote to see it in the transcript.</p>
+        <div class="review-tools">
+          <p class="hint">Nothing is final until you accept it. Only accepted or edited items are exported. Tap a quote to see it in the transcript.</p>
+          <span id="reviewTools" hidden><button id="expandAll" type="button" class="btn-quiet">Expand all</button></span>
+        </div>
         <p id="reviewNotice" class="notice" hidden></p>
         <div id="reviewBody" tabindex="-1"></div>
       </div>

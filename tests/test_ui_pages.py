@@ -91,9 +91,18 @@ def test_interview_review_export_sessions_and_costs_flow(app_url, browser):
     page.click("#reviewLink")
     page.wait_for_url(f"**/review/{sid}")
     page.wait_for_selector(".result-card", timeout=20000)
-    first = page.locator(".result-card .ritem").first
-    first.locator("button:has-text('Accept')").click()
+    # laid out like the report: lead sections first, topics as collapsed rows, the accounts as a table
+    ids = page.evaluate("[...document.querySelectorAll('#reviewBody > *')].map(n => n.id).filter(Boolean)")
+    assert ids.index("sec-custom.safety_flags") < ids.index("topics"), ids
+    assert page.locator("table.accounts").count() == ("sec-accounts" in ids), ids
+    card = page.locator("#topics details.result-card").first
+    assert not card.evaluate("d => d.open")
+    card.locator("summary strong").click()
+    card.locator(".ritem button:has-text('Accept')").first.click()
     page.wait_for_selector(".result-card .ritem[data-status=accepted]")
+    assert page.locator("#topics details.result-card").first.evaluate("d => d.open")  # stays open after the re-render
+    page.click("#expandAll")
+    assert page.evaluate("[...document.querySelectorAll('#reviewBody details')].every(d => d.open)")
     with page.expect_download() as dl:
         page.click("#exportHtml")
     html = Path(dl.value.path()).read_text()

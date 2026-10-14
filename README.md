@@ -111,7 +111,7 @@ In Paste mode, the tool matches names before the colon to roles (aliases such as
 
 ## Review and report
 
-The review page opens with **checklist coverage** and one **topic card** per topic, gaps first.
+The review page is laid out like the exported report (below): the "X of N items reviewed" line, checklist coverage with jump links, the interview type's lead sections (CPS: Safety Flags with the live flags folded in, Child's Direct Statements), topics in "Needs follow-up" and "Covered" groups (each a one-line row with its suggested follow-up; open it to review), the accounts table, then the other sections closed with a count. Every item keeps **Accept / Edit / Reject**, unreviewed items have a dashed outline, and **Expand all** opens every section. Sections stay as you left them after each decision.
 
 ![The review page: coverage and topic cards, report options, transcript](docs/screenshots/review.png)
 
@@ -121,7 +121,7 @@ The review page opens with **checklist coverage** and one **topic card** per top
 
 ![A topic card on the review page](docs/screenshots/review-topic-card.png)
 
-Below the cards are the other draft sections the interview type asks for (summary, next steps, custom sections, for CPS also the form fields, timeline and accounts side by side). Items about something that was *not* said show "Based on the checklist: <topic> (<status>)", plus the closest quote when there is one. Interview types that allow it (the job interview demo) add an overall assessment marked **"Draft for human review"**.
+The other draft sections are the ones the interview type asks for (summary, next steps, custom sections, for CPS also the timeline and accounts side by side). Items about something that was *not* said show "Based on the checklist: <topic> (<status>)", plus the closest quote when there is one. Interview types that allow it (the job interview demo) add an overall assessment marked **"Draft for human review"**.
 
 **What you control in the report** (the Report box on the right):
 

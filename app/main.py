@@ -20,7 +20,7 @@ from app import pack_editor
 from app import report as cost_report
 from app.store import read_utterances
 from app import review_actions
-from app.export import build_report, load_session, render_html
+from app.export import build_report, load_session, render_html, review_page_extras
 from app.pipeline import Session, pack_info
 
 STATIC = Path(__file__).parent / "static"
@@ -221,7 +221,8 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
             review = {"state": "ready" if draft else "failed" if failed else "none", "draft": draft,
                       "model": (draft or {}).get("model"), "error": (failed or {}).get("details", {}).get("error")}
             utts = read_utterances(d)
-        return {"session_id": sid, "live": sid in live, "review": review, "pack": pack_info(pk), "utterances": utts}
+        return {"session_id": sid, "live": sid in live, "review": review, "pack": pack_info(pk), "utterances": utts,
+                **review_page_extras(d, review["draft"], pk, utts)}  # to lay the page out like the report
 
     @app.post("/api/sessions/{sid}/review")
     async def post_review(sid: str, request: Request):
@@ -235,7 +236,8 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
                 return {"ok": True}
             if err := await s.review_decision(body):
                 raise HTTPException(400, err)
-            return {"ok": True, "review": s.review_message()}
+            utts = [u.model_dump() for u in s.store.utterances]
+            return {"ok": True, "review": s.review_message(), **review_page_extras(d, s.draft, s.pack, utts)}
         if not (d / "draft_note.json").exists():
             raise HTTPException(409, "no review yet")
         draft = json.loads((d / "draft_note.json").read_text(encoding="utf-8"))
@@ -247,7 +249,8 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
         if err:
             raise HTTPException(400, err)
         (d / "draft_note.json").write_text(json.dumps(draft, indent=1), encoding="utf-8")
-        return {"ok": True, "review": {"state": "ready", "draft": draft, "model": draft.get("model"), "error": None}}
+        return {"ok": True, "review": {"state": "ready", "draft": draft, "model": draft.get("model"), "error": None},
+                **review_page_extras(d, draft, pack_by_ref(draft.get("pack")), read_utterances(d))}
 
     @app.get("/api/costs")
     def costs(experiment: str | None = None):

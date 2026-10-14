@@ -36,11 +36,77 @@ def clock(ms: int) -> str:
     return f"{s // 3600}:{s // 60 % 60:02d}:{s % 60:02d}" if s >= 3600 else f"{s // 60}:{s % 60:02d}"
 
 
+def quoter(utterances: list[dict], pack: UseCasePack):
+    """Evidence -> quotes with the speaker and time of each line."""
+    utts = {u["id"]: u for u in utterances}
+    role = {r.id: r.label for r in pack.roles}
+
+    def quotes(evidence: list[dict]) -> list[dict]:
+        out = []
+        for e in evidence:
+            u = utts.get(e["utterance_id"], {})
+            out.append({"utterance_id": e["utterance_id"], "quote": e["quote"], "speaker": u.get("speaker"),
+                        "speaker_label": role.get(u.get("speaker"), u.get("speaker") or "unknown"),
+                        "t_ms": u.get("t_start_ms")})
+        return out
+    return quotes
+
+
+def follow_up_levels(draft: dict) -> dict[str, str]:
+    """Topic id -> the live follow-up level ("required" gets a badge and goes first)."""
+    return {o["id"]: o.get("follow_up", "none") for o in (draft.get("checklist") or {}).get("open_topics", [])}
+
+
+def layout(pack: UseCasePack, utterances: list[dict]) -> dict:
+    """Where sections go, shared by the report and the review page (2026-10-14, report readability)."""
+    return {"lead": list(pack.review.lead_sections), "flags_into": pack.review.live_flags_into,
+            "account_columns": [{"id": x.id, "label": x.label} for x in pack.roles if x.kind == "subject"]
+            + [{"id": x.id, "label": x.label} for x in pack.review.extra_sources],
+            "account_groups": {t: g.label for g in pack.review.account_groups for t in g.topics},
+            "speaker_note": any(u.get("source") in ("mic", "file") for u in utterances)}
+
+
+def live_flags(events: list[dict], quotes) -> list[dict]:
+    """The flags shown during the interview, with the quotes of later lines the gate marked as repeats."""
+    added: dict[str, list[dict]] = {}  # flag cue id -> quotes from later lines
+    for e in events:
+        if e.get("kind") == "flag_added_to":
+            added.setdefault(e["cue_id"], []).append(e["evidence"])
+    return [{"topic_id": e["cue"]["topic_id"], "note": e["cue"]["question_or_note"],
+             "evidence": quotes([e["cue"]["evidence"], *added.get(e["cue"]["id"], [])]), "status": "proposed"}
+            for e in events if e.get("kind") == "cue" and e["cue"]["kind"] == "flag"]
+
+
+def consent_line(draft: dict, audit: list[dict], pack: UseCasePack) -> dict | None:
+    if not ((ct := pack.special_topics.consent_topic) and draft.get("topics")):
+        return None
+    t = next((t for t in draft["topics"] if t["topic_id"] == ct), None)
+    acts = [a["action"] for a in audit if a["action"].startswith("consent_refusal")]
+    check = ("the user stopped the tool" if "consent_refusal_confirmed" in acts else
+             "raised; the user chose to continue" if "consent_refusal_not_confirmed" in acts else
+             "raised, no answer recorded" if "consent_refusal_detected" in acts else "none raised")
+    rec = [a for a in audit if a["action"] == "consent_recorded"]
+    return {"topic": t["label"] if t else ct, "status": t["status"] if t else "not_covered", "refusal_check": check,
+            "recorded": [pack.role_label(r) for r in rec[-1]["details"]["roles"]] if rec else None}
+
+
+def notes_of(events: list[dict]) -> list[dict]:
+    return [{"t_ms": e["t_ms"], "text": e["text"]} for e in events if e.get("kind") == "note"]
+
+
+def review_page_extras(d: Path, draft: dict | None, pack: UseCasePack, utterances: list[dict]) -> dict:
+    """What the review page needs beyond the draft to lay itself out like the report."""
+    events, audit = _jsonl(d / "events.jsonl"), _jsonl(d / "audit.jsonl")
+    return {"layout": layout(pack, utterances), "flags": live_flags(events, quoter(utterances, pack)),
+            "notes": notes_of(events), "consent": consent_line(draft, audit, pack) if draft else None,
+            "follow_up_levels": follow_up_levels(draft) if draft else {},
+            "missing_prefix": MISSING_PREFIX, "not_stated": NOT_STATED}
+
+
 def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = False, transcript: bool = False,
                  cost: bool = False, reviewer: str = "", sample: bool = False, now: datetime | None = None) -> dict:
     """The JSON export. The HTML is rendered from exactly this."""
     draft, now = data["draft"], now or datetime.now(timezone.utc)
-    utts = {u["id"]: u for u in data["utterances"]}
     role = {r.id: r.label for r in pack.roles}
     user_label = pack.user_role.label.lower()
     show = KEPT + (("proposed",) if include_unreviewed else ())
@@ -53,16 +119,8 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
             counts["not_reviewed"] += 1
         return status in show
 
-    def quotes(evidence: list[dict]) -> list[dict]:
-        out = []
-        for e in evidence:
-            u = utts.get(e["utterance_id"], {})
-            out.append({"utterance_id": e["utterance_id"], "quote": e["quote"], "speaker": u.get("speaker"),
-                        "speaker_label": role.get(u.get("speaker"), u.get("speaker") or "unknown"),
-                        "t_ms": u.get("t_start_ms")})
-        return out
-
-    levels = {o["id"]: o.get("follow_up", "none") for o in (draft.get("checklist") or {}).get("open_topics", [])}
+    quotes = quoter(data["utterances"], pack)
+    levels = follow_up_levels(draft)
     review_total = review_done = 0  # model-written parts the user can accept, edit or reject (not live flags)
     topics = []
     for t in sorted(draft.get("topics", []), key=lambda t: RANK[t["status"]]):  # stable: pack order inside a group
@@ -107,25 +165,10 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
     models = (start.get("details") or {}).get("models", {})
     review_acts = [a["ts"] for a in audit if a["actor"] == "user" and
                    (a["action"].startswith("review_") or a["action"] == "topic_status_changed_by_user")]
-    notes = [{"t_ms": e["t_ms"], "text": e["text"]} for e in events if e.get("kind") == "note"]
-    added: dict[str, list[dict]] = {}  # flag cue id -> quotes from later lines the gate marked as repeats
-    for e in events:
-        if e.get("kind") == "flag_added_to":
-            added.setdefault(e["cue_id"], []).append(e["evidence"])
-    flags = [{"topic_id": e["cue"]["topic_id"], "note": e["cue"]["question_or_note"],
-              "evidence": quotes([e["cue"]["evidence"], *added.get(e["cue"]["id"], [])]), "status": "proposed"}
-             for e in events if e.get("kind") == "cue" and e["cue"]["kind"] == "flag"]
+    notes = notes_of(events)
+    flags = live_flags(events, quotes)
     counts["not_reviewed"] += 0 if include_unreviewed else len(flags)
-    consent = None
-    if (ct := pack.special_topics.consent_topic) and draft.get("topics"):
-        t = next((t for t in draft["topics"] if t["topic_id"] == ct), None)
-        acts = [a["action"] for a in audit if a["action"].startswith("consent_refusal")]
-        check = ("the user stopped the tool" if "consent_refusal_confirmed" in acts else
-                 "raised; the user chose to continue" if "consent_refusal_not_confirmed" in acts else
-                 "raised, no answer recorded" if "consent_refusal_detected" in acts else "none raised")
-        rec = [a for a in audit if a["action"] == "consent_recorded"]
-        consent = {"topic": t["label"] if t else ct, "status": t["status"] if t else "not_covered", "refusal_check": check,
-                   "recorded": [pack.role_label(r) for r in rec[-1]["details"]["roles"]] if rec else None}
+    consent = consent_line(draft, audit, pack)
 
     report = {
         "report_format_version": REPORT_FORMAT_VERSION, "sample": sample,
@@ -143,11 +186,7 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
         "models": {k: models[k] for k in ("gate", "cue", "review") if k in models},
         "not_included": counts, "user_label": user_label,
         "reviewed_count": {"reviewed": review_done, "total": review_total},
-        "layout": {"lead": list(pack.review.lead_sections), "flags_into": pack.review.live_flags_into,
-                   "account_columns": [{"id": x.id, "label": x.label} for x in pack.roles if x.kind == "subject"]
-                   + [{"id": x.id, "label": x.label} for x in pack.review.extra_sources],
-                   "account_groups": {t: g.label for g in pack.review.account_groups for t in g.topics},
-                   "speaker_note": any(u.get("source") in ("mic", "file") for u in data["utterances"])},
+        "layout": layout(pack, data["utterances"]),
         # kept from the M5 export so earlier readers still work
         "form_fields": form_fields, "sections": {s["id"]: s["items"] for s in sections if s["id"] != "form"},
         "section_titles": titles, "checklist": draft.get("checklist", {}),
