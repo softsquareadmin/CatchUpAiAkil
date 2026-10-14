@@ -249,6 +249,7 @@ Any setting can be overridden for one run with an environment variable (upper ca
 | `hybrid_min_confidence` | `0.9` | Hybrid: confidence needed for the early mark |
 | `gate_prompt` | `full` | `full` or `short` (shorter prompt; no latency gain measured) |
 | `gate_temperature` | `null` | `null` = provider default (Google recommends 1.0 for Gemini 3) |
+| `gate_skip_user_lines` | `false` | Experiment: no gate call on the user's own line; it is read with the next answer (13 instead of 23 calls on the CPS script, same accuracy; needs the user's voice identified) |
 | `gate_prompt_cache` | `true` | Mark the gate's unchanging prompt part (rules + checklist) for prompt caching (about 57% cheaper per call, measured 2026-10-14) |
 | `openrouter_provider_order` | Gemini → `google-ai-studio` | Per model, the OpenRouter providers to try first. A prompt cache lives at one provider, so Gemini is kept on one (docs/provider-notes.md) |
 | `jev_model`, `jev_min_probability`, `jev_questions`, `jev_followup_probability` | see file | Jev and hybrid gate experiments |

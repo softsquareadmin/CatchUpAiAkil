@@ -27,6 +27,7 @@ limits:                       # provider rate limits (M10a); see docs/provider-n
     openrouter: 18            # new accounts observed at 20/min per model (2026-10-08); owner to confirm
   deadline_s: {gate: 8, cue: 8, review: 60, batch: 60}   # live roles give up fast; batch = tests and evaluations
   max_attempts: 4
+gate_skip_user_lines: false   # experiment: no gate call on the user's own lines (read with the next answer)
 gate_prompt_cache: true       # the gate's rules + checklist are marked for prompt caching (2026-10-14)
 openrouter_provider_order:    # a prompt cache lives at one provider: keep Gemini on one (2026-10-14, docs/provider-notes.md)
   google/gemini-3.8-flash: [google-ai-studio]

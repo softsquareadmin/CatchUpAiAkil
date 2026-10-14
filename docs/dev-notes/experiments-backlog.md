@@ -121,7 +121,7 @@ Latency should barely change, because it follows output length.
 - Measured live: 2,185 of about 2,500 input tokens cached. **$0.0011 instead of $0.0025 per call (-57%)**, at 2.5-4.7 s.
 - Data-routing note: Gemini calls (the gate and the follow-up card writer) now go to **Google AI Studio, not Vertex**. Check its data terms before real data.
 
-**Skipping the gate on the user's own lines (owner likes it; not built):**
+**Skipping the gate on the user's own lines (built as `gate_skip_user_lines`, off by default; tested 2026-10-14: 13 instead of 23 calls, -31% gate cost, 11/11, all 4 flags kept):**
 - The user's lines **stay in the window**: questions, a report read aloud and the consent request are context the gate needs.
 - The idea is only not to *call* the gate when the newest line is the user's. That line is read with the next answer.
 - Trade-off: a flag or consent prompt triggered by a user line arrives one turn later.
@@ -132,7 +132,7 @@ Latency should barely change, because it follows output length.
 
 | Model | Input $/M | Output $/M |
 |---|---|---|
-| `openai/gpt-6-luna` (not tested yet; gpt-5.6-luna-pro was: 10/11, 1 safety miss, 9 s per call) | 0.10 | 0.50 |
+| `openai/gpt-6-luna` (**tested 2026-10-14: 8/11, 17 false required follow-ups, 6.7 s; not adopted**) | 0.10 | 0.50 |
 | `openai/gpt-6-luna-pro` | 0.10 | 0.50 |
 | `inception/mercury-2.5` | 0.04 | 0.15 |
 | `liquid/lfm-2.5-24b-a2b` | 0.05 | 0.70 |

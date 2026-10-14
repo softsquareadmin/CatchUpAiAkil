@@ -28,6 +28,9 @@ SETUPS = {
     "g35lite": {"models.gate": "openrouter:google/gemini-3.5-flash-lite", "gate_adapter": "llm"},
     "gpt54-mini": {"models.gate": "openrouter:openai/gpt-5.4-mini", "gate_adapter": "llm"},
     "luna-pro": {"models.gate": "openrouter:openai/gpt-5.6-luna-pro", "gate_adapter": "llm"},
+    "luna6": {"models.gate": "openrouter:openai/gpt-6-luna", "gate_adapter": "llm"},  # 2026-10-14
+    "g38-skipuser": {"models.gate": "openrouter:google/gemini-3.8-flash", "gate_adapter": "llm",
+                     "gate_skip_user_lines": True},  # 2026-10-14: no gate call on the worker's own lines
     "jev-choice": {"gate_adapter": "jev", "jev_questions": "choice"},
 }
 TIMELINE = json.loads((ROOT / "tests/fixtures/timeline_v3.json").read_text())["topics"]

@@ -649,3 +649,14 @@ def test_the_report_lists_the_added_quotes_under_the_flag(tmp_path):
     (tmp_path / s.id / "draft_note.json").write_text(json.dumps({"topics": [], "items": []}))
     r = build_report(load_session(tmp_path / s.id), PACK, include_unreviewed=True)
     assert len(r["flags"]) == 1 and [q["utterance_id"] for q in r["flags"][0]["evidence"]] == ["u0001", "u0002"]
+
+
+def test_skipping_the_users_lines_reads_them_with_the_next_answer(tmp_path):
+    s, sent = make_session(tmp_path, GATE_SKIP_USER_LINES="true")
+
+    async def go():
+        await say(s, (1, "worker", "Can you tell me how you feel at home?"))
+        assert s.decider.calls == []  # no gate call on the user's own line
+        await say(s, AFRAID)
+    asyncio.run(go())
+    assert s.decider.calls == [["u0001", "u0002"]]  # the question is read with the answer

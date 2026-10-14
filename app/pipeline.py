@@ -297,7 +297,10 @@ class Session:
                               **({"part": self.label_source.last_part} if self.label_source.last_part else {}),
                               words=self.label_source.last_words)
         if u.is_final:
-            self.request_gate()
+            # the user's own line cannot cover a topic: optionally it waits and is read with the next answer (it stays
+            # in the window, so questions and anything read out keep their context; flags it raises come a turn later)
+            if not (self.settings.gate_skip_user_lines and u.speaker == self.pack.user_role.id):
+                self.request_gate()
             if u.speaker == self.pack.user_role.id:
                 self.schedule_cues()  # the answer is over: held suggested cards are written now, not after the gate
             if not self.ending_prompted and self.lint.seems_ending(u.text):
