@@ -82,13 +82,13 @@ def pack_info(pk: UseCasePack, file: str | None = None) -> dict:
 class Session:
     def __init__(self, settings: Settings, pack: UseCasePack, sessions_dir: Path, send: Send,
                  decider: Decider | None = None, session_id: str | None = None, analyst: Analyst | None = None,
-                 batch: bool = False):
+                 batch: bool = False, hold_files: bool = False):
         self.id = session_id or new_session_id()
         self.settings, self.pack, self.send = settings, pack, send
         self.dir = Path(sessions_dir) / self.id
         self.store = TranscriptStore(self.dir)
         self.events = EventLog(self.dir)
-        self.audit = AuditLog(self.dir, self.id)
+        self.audit = AuditLog(self.dir, self.id, held=hold_files)  # hold_files: nothing on disk until begin()
         self.ledger = Ledger(self.dir, self.id, settings.experiment_label, settings.max_session_cost_usd, pack=pack.ref)
         self.lint = Lint(pack)
         self.started = time.monotonic()  # reset when the interview begins (Start interview, or the first input)
@@ -165,6 +165,7 @@ class Session:
         if self.begun:
             return
         self.begun, self.started = True, time.monotonic()
+        self.audit.open()  # the session's files start here (held until now for a live session)
         self.audit.write("user" if how == "start_button" else "system", "interview_started", how=how)
         await self.send({"type": "started"})
 

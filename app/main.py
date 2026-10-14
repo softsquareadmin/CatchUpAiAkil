@@ -243,6 +243,9 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
             if start is None:
                 continue
             utts = read_utterances(d)
+            if not utts and not any(a["action"] == "interview_started" for a in audit) and \
+                    not (d / "draft_note.json").exists():
+                continue  # the page was opened and left (sessions from before files waited for the interview)
             has_review = (d / "draft_note.json").exists()
             decided = any(a["actor"] == "user" and (a["action"].startswith("review_") or
                                                    a["action"] == "topic_status_changed_by_user") for a in audit)
@@ -379,7 +382,8 @@ def create_app(settings: Settings | None = None, sessions_dir: Path = ROOT / "se
             session.send = websocket.send_json
             session.audit.write("system", "browser_reconnected")
         else:
-            session = Session(settings, pack_for(pack), sessions_dir, websocket.send_json)
+            # files are written only once the interview begins (Start interview, or any input)
+            session = Session(settings, pack_for(pack), sessions_dir, websocket.send_json, hold_files=True)
             session.pack_file = pack if pack_for(pack) is not app.state.pack else default_file
             await session.start_typed()
         live[session.id] = (session, None)

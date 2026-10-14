@@ -434,6 +434,12 @@ the repo are never taken from the table.
 4. Open `https://<service>.onrender.com/health`: expect `"storage": "supabase"`, `"access": "passcode"` and
    `"ffmpeg": true`. Open the link once before a demo to wake it.
 
+**Copying local sessions to the shared copy:** `python -m scripts.upload_sessions --from YYYYMMDD --to YYYYMMDD`
+(or session ids; `--pack`) lists what it would upload, `--yes` uploads, then restart the Render service. Sessions
+that used the Mic or an Audio file are skipped unless `--include-recordings`. Uploaded sessions are marked
+`imported.json`, so their past cost does not count toward `MAX_TOTAL_COST_USD`. They cannot be removed with the app's
+key; delete rows in the Supabase Table Editor if needed.
+
 **Rules for the shared copy**
 - **Fictional or demo recordings only.** Everything run there is stored in Supabase and visible to everyone with the
   passcode.
@@ -451,7 +457,7 @@ app/static/          the pages: HTML, CSS (tokens, components, pages), plain Jav
 app/static/img/      Softsquare logos and browser tab icon (PNGs made from the brand files)
 assets/              Softsquare brand source files: PSD, EPS, JPEG (git-ignored; ask the owner for them)
 config/              settings.yaml, prices.json
-scripts/             check_supabase.py (checks the deployment's Supabase table)
+scripts/             check_supabase.py (checks the deployment's Supabase table), upload_sessions.py (copies local sessions to it)
 Dockerfile, render.yaml, ia_files.sql   the shared test deployment (see Deploy)
 packs/               interview types (YAML)
 tests/               offline tests, fixtures (fictional scripts), paid scripts, screenshot and report makers

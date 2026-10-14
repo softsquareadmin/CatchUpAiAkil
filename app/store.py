@@ -8,8 +8,7 @@ from app.models import Utterance
 
 class TranscriptStore:
     def __init__(self, session_dir: Path):
-        self.path = Path(session_dir) / "utterances.jsonl"
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = Path(session_dir) / "utterances.jsonl"  # folder made on the first write
         self.utterances: list[Utterance] = []
 
     def append(self, u: Utterance) -> Utterance:
@@ -17,6 +16,7 @@ class TranscriptStore:
         if not u.is_final:
             raise ValueError("Only final utterances are stored")
         u = u.model_copy(update={"id": f"u{len(self.utterances) + 1:04d}"})
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
             f.write(u.model_dump_json() + "\n")
         self.utterances.append(u)
@@ -41,10 +41,10 @@ def read_utterances(session_dir: Path) -> list[dict]:
 
 class EventLog:
     def __init__(self, session_dir: Path):
-        self.path = Path(session_dir) / "events.jsonl"
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = Path(session_dir) / "events.jsonl"  # folder made on the first write
 
     def write(self, kind: str, **data) -> None:
         row = {"ts": datetime.now(timezone.utc).isoformat(), "kind": kind, **data}
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(row) + "\n")

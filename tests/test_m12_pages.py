@@ -162,3 +162,27 @@ def test_a_running_review_is_not_closed_when_the_browser_leaves(tmp_path, monkey
             time.sleep(0.05)
         assert not got["live"]  # closed once the review was done
         assert got["review"]["state"] == "ready" and got["review"]["draft"]["topics"]
+
+
+def test_a_session_is_saved_only_once_the_interview_begins(tmp_path):
+    env = {"GATE_MODEL": "fake:keyword", "CUE_MODEL": "fake:template"}
+    c = TestClient(create_app(load_settings(env_file=None, environ=env), sessions_dir=tmp_path, env={}))
+    with c.websocket_connect("/ws") as ws:  # page opened and left
+        left = ws.receive_json()["session_id"]
+    assert not (tmp_path / left).exists() and c.get("/api/sessions").json() == []
+    with c.websocket_connect("/ws") as ws:
+        sid = ws.receive_json()["session_id"]
+        ws.send_json({"type": "start"})
+        assert ws.receive_json()["type"] == "started"
+    actions = [json.loads(l)["action"] for l in (tmp_path / sid / "audit.jsonl").read_text().splitlines()]
+    assert actions[:2] == ["session_start", "interview_started"]
+    assert [s["id"] for s in c.get("/api/sessions").json()] == [sid]
+
+
+def test_sessions_page_hides_old_sessions_that_never_began(tmp_path):
+    d = tmp_path / "20261013-090000-aaaa"
+    d.mkdir()
+    (d / "audit.jsonl").write_text(json.dumps({"ts": "2026-10-13T09:00:00+00:00", "actor": "system",
+                                               "action": "session_start", "details": {}}) + "\n")
+    c = TestClient(create_app(load_settings(env_file=None, environ={}), sessions_dir=tmp_path, env={}))
+    assert c.get("/api/sessions").json() == []

@@ -263,3 +263,11 @@ def test_no_cap_by_default(tmp_path):
     settings = load_settings(env_file=ROOT / ".env.example", environ={})
     create_app(settings, tmp_path, env={})
     assert settings.max_total_cost_usd == 0 and tmp_path.resolve() not in TOTALS
+
+
+def test_imported_sessions_do_not_count_toward_the_overall_cap(tmp_path):
+    from app.ledger import IMPORTED_MARKER, SpendTotal
+    write(tmp_path / "20261001-090000-aaaa" / "ledger.jsonl", json.dumps({"cost_usd": 3.0}) + "\n")
+    write(tmp_path / "20261001-090000-aaaa" / IMPORTED_MARKER, "{}")
+    write(tmp_path / "20261014-101500-bbbb" / "ledger.jsonl", json.dumps({"cost_usd": 0.25}) + "\n")
+    assert SpendTotal(tmp_path, 10).total_usd == 0.25

@@ -213,4 +213,6 @@ def test_upload_endpoint_decodes_and_hands_pcm_to_the_session(tmp_path):
         assert got[0][1] == "clip.wav" and abs(got[0][0] / 32000 - 1.0) < 0.1
         assert client.post(f"/api/sessions/{sid}/audio?name=clip.wav", content=wav).status_code == 409
     assert client.post("/api/sessions/20990101-000000-ffff/audio?name=a.wav", content=wav).status_code == 404
-    assert '"audio_file_rejected"' in (tmp_path / sid / "audit.jsonl").read_text()
+    # the rejected file came before the interview began, and the fake start never began it: nothing on disk
+    assert any(r["action"] == "audio_file_rejected" for r in s.audit.waiting)
+    assert not (tmp_path / sid).exists()

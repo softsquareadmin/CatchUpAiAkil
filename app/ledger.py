@@ -15,9 +15,13 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
+IMPORTED_MARKER = "imported.json"  # written by scripts/upload_sessions.py
+
+
 class SpendTotal:
     """Cost of every session under one sessions folder, for the deployment's overall cap (MAX_TOTAL_COST_USD).
-    Summed from the ledgers once, then kept up to date by Ledger.record; 0 = no cap."""
+    Summed from the ledgers once, then kept up to date by Ledger.record; 0 = no cap. Sessions uploaded from a local
+    machine (IMPORTED_MARKER) are not counted."""
 
     def __init__(self, sessions_dir: Path, cap_usd: float):
         self.sessions_dir, self.cap_usd = Path(sessions_dir), cap_usd
@@ -26,6 +30,8 @@ class SpendTotal:
     def refresh(self) -> None:
         total = 0.0
         for path in self.sessions_dir.glob("*/ledger.jsonl"):
+            if (path.parent / IMPORTED_MARKER).exists():  # copied in from a local machine: spent before deploying
+                continue
             for line in path.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     total += json.loads(line).get("cost_usd") or 0.0
@@ -87,8 +93,7 @@ def compute_cost(prices: dict, provider: str, model: str, input_tokens: int = 0,
 class Ledger:
     def __init__(self, session_dir: Path, session_id: str, experiment: str,
                  max_cost_usd: float, prices: dict | None = None, pack: str = ""):
-        self.path = Path(session_dir) / "ledger.jsonl"
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = Path(session_dir) / "ledger.jsonl"  # folder made on the first write
         self.session_id, self.experiment, self.max_cost_usd, self.pack = session_id, experiment, max_cost_usd, pack
         self.prices = load_prices() if prices is None else prices
         self.total_usd = 0.0
@@ -122,6 +127,7 @@ class Ledger:
             audio_seconds=audio_seconds,
             cost_usd=cost, cost_source=source, latency_ms=latency_ms, ok=ok, error=error, status=status,
             attempt=attempt, waited_s=waited_s)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
             f.write(row.model_dump_json() + "\n")
         self.total_usd += cost
