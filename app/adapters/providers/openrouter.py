@@ -60,14 +60,19 @@ def error_from_transport(e: httpx.HTTPError, what: str) -> ProviderError:
 
 
 class OpenRouterClient:
-    def __init__(self, api_key: str, timeout_s: float = 30.0, transport: httpx.AsyncBaseTransport | None = None):
+    def __init__(self, api_key: str, timeout_s: float = 30.0, transport: httpx.AsyncBaseTransport | None = None,
+                 provider_order: dict[str, list[str]] | None = None):
+        """provider_order: model id -> OpenRouter provider slugs to try first. A prompt cache lives at one provider,
+        so a model whose calls are spread over two providers (Gemini: Google AI Studio and Vertex) misses it."""
+        self.provider_order = provider_order or {}
         self._http = httpx.AsyncClient(timeout=timeout_s, transport=transport,
                                        headers={"Authorization": f"Bearer {api_key}"})
 
     async def chat_json(self, model: str, messages: list[dict], schema_name: str, schema: dict,
                         reasoning_effort: str | None = None, max_tokens: int = 2000,
                         temperature: float | None = None) -> dict:
-        """Return {content, input_tokens, output_tokens, cost_usd (or None), latency_ms}."""
+        """Return {content, input_tokens, cached_input_tokens, output_tokens, cost_usd (or None), latency_ms}.
+        A message part may carry "cache_control" (prompt caching); OpenRouter passes it to providers that use it."""
         body = {
             "model": model,
             "messages": messages,
@@ -76,6 +81,8 @@ class OpenRouterClient:
                                 "json_schema": {"name": schema_name, "strict": True, "schema": schema}},
             "provider": {"require_parameters": True},
         }
+        if order := self.provider_order.get(model):
+            body["provider"]["order"] = order
         if reasoning_effort:
             body["reasoning"] = {"effort": reasoning_effort}
         if temperature is not None:
@@ -95,6 +102,7 @@ class OpenRouterClient:
         return {
             "content": data["choices"][0]["message"].get("content") or "",
             "input_tokens": usage.get("prompt_tokens", 0),
+            "cached_input_tokens": (usage.get("prompt_tokens_details") or {}).get("cached_tokens") or 0,
             "output_tokens": usage.get("completion_tokens", 0),
             "cost_usd": usage.get("cost"),
             "latency_ms": latency_ms,

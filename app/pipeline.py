@@ -25,7 +25,7 @@ from app import review_actions
 from app.review import (EmptyCaseContext, build_items, build_topic_results, checklist_summary, lost_sections, retry_note,
                         section_titles, topic_coverage)
 from app.models import (ChecklistItem, Cue, Flag, GateResult, ReviewItem, Speaker, TopicState, TopicUpdate,
-                        UseCasePack, Utterance)
+                        UseCasePack, Utterance, VoiceRole)
 from app.store import EventLog, TranscriptStore
 
 log = logging.getLogger(__name__)
@@ -129,7 +129,9 @@ class Session:
         self.label_source: AssemblyAITranscriber | None = None  # last mic, also while it is stopping
         self.connection: object | None = None  # the browser connection that currently owns this session
         self.mic_state = "off"
-        self.speaker_map: dict[str, Speaker] = {}  # AssemblyAI label (A, B, ...) -> role id, set by the user
+        self.speaker_map: dict[str, Speaker] = {}  # AssemblyAI label (A, B, ...) -> role id, set by the user or guessed
+        self.inferred: dict[str, Speaker] = {}  # labels whose role the gate guessed from the words; the user's choice wins
+        self.inferred_lines: dict[str, str] = {}  # line id -> label, lines a guess relabelled (a user change follows them)
         self.labels_seen: list[str] = []
         self.manual_speaker: Speaker | None = None  # user's toggle; overrides labels while set
         self.audio_file = None
@@ -139,6 +141,7 @@ class Session:
         self.file_pace = 1.0  # 1 = real time (AssemblyAI requires it); tests set 0
         self.draft: dict | None = None  # post-interview review (draft_note.json)
         self.review_state = "none"  # none | running | ready | failed
+        self.stopped_at_ms: int | None = None  # the clock's value when the tool stopped
         self.review_error: str | None = None
         self.ledger.on_record = lambda row: self._spawn(self.send({"type": "experiment", "experiment": self.experiment_status()}))
         self.audit.write("system", "session_start", experiment=settings.experiment_label,
@@ -147,7 +150,9 @@ class Session:
                          recommendation_enabled=pack.rails.allow_overall_recommendation)
 
     def elapsed_ms(self) -> int:
-        """Interview clock: 0 until the interview begins."""
+        """Interview clock: 0 until the interview begins; stops when the tool stops (End interview)."""
+        if self.stopped_at_ms is not None:
+            return self.stopped_at_ms
         return int((time.monotonic() - self.started) * 1000) if self.begun else 0
 
     async def begin(self, how: str = "start_button") -> None:
@@ -182,7 +187,7 @@ class Session:
 
     def mic_status(self) -> dict:
         return {"state": self.mic_state, "model": self.settings.models["stt"], "labels": self.labels_seen,
-                "mapping": self.speaker_map, "manual": self.manual_speaker,
+                "mapping": self.speaker_map, "inferred": sorted(self.inferred), "manual": self.manual_speaker,
                 "speaker_labels": self.settings.stt_speaker_labels, "source": self.mic_source}
 
     # ---- provider health (M10a): delays and skipped analysis are shown, logged and audited ----
@@ -285,6 +290,8 @@ class Session:
             self.last_line_at = self.clock()
         if u.is_final and u.source in ("mic", "file") and self.label_source is not None:
             self.line_labels[u.id] = (self.label_source.last_label, self.label_source.connections)
+            if self.inferred.get(self.label_source.last_label) == u.speaker and not self.manual_speaker:
+                self.inferred_lines[u.id] = self.label_source.last_label  # took a guessed role: follows a user change
             self.events.write("stt_label", utterance_id=u.id, label=self.label_source.last_label,
                               confidence=self.label_source.last_label_confidence, speaker=u.speaker,
                               **({"part": self.label_source.last_part} if self.label_source.last_part else {}),
@@ -327,6 +334,8 @@ class Session:
             ms = lambda: int((time.monotonic() - t0) * 1000)  # noqa: E731
             # the flags already shown, so the gate can mark a repeat instead of raising it again
             extra = {"flags_raised": self.board.flags_raised()} if getattr(self.decider, "takes_flags", False) else {}
+            if getattr(self.decider, "takes_voices", False) and (voices := self.unidentified_voices(window)):
+                extra["voices"] = voices  # the gate may say whose voice it is from the words
             try:
                 if getattr(self.decider, "staged", False):
                     async def on_partial(fast: GateResult) -> None:
@@ -370,6 +379,8 @@ class Session:
         for f in flags:
             self.events.write("flag", flag=f.model_dump())
             await self.on_flag(f)
+        for vr in result.voice_roles:
+            await self.apply_voice_role(vr)
         if result.answer_quality:
             self.events.write("answer_quality", **result.answer_quality.model_dump())
         await self.send({"type": "gate_status", "gate": self.gate_status(
@@ -426,7 +437,13 @@ class Session:
     async def after_topic_changes(self, changed: list[TopicState]) -> None:
         for s in changed:  # an active card no longer matches its topic's follow-up level
             cue_id = self.board.active.get(s.item_id)
-            if cue_id and self.board.level.get(cue_id) != s.follow_up:
+            if cue_id and self.board.level.get(cue_id) == "required" and s.follow_up == "suggested":
+                # the answer moved on but the question still helps: keep the card, now as a suggestion (a new
+                # suggested card would wait for the user's next line and is lost if the interview ends first)
+                self.board.level[cue_id] = "suggested"
+                self.events.write("cue_relabelled", cue_id=cue_id, level="suggested")
+                await self.send({"type": "cue_update", "cue": self.board.cues[cue_id].model_dump(), "level": "suggested"})
+            elif cue_id and self.board.level.get(cue_id) != s.follow_up:
                 self.board.withdraw(s.item_id)
                 self.events.write("cue_withdrawn", cue_id=cue_id, reason=f"follow-up now {s.follow_up}")
                 await self.send({"type": "cue_withdrawn", "id": cue_id})
@@ -579,8 +596,24 @@ class Session:
             return
         open_ = open_required_topics(self.pack, self.checklist)
         self.audit.write("system", "before_leave_shown", reason=reason, open=[o["id"] for o in open_])
-        await self.send({"type": "before_leave", "reason": reason, "open": open_,
+        voices = self.voices_to_check()
+        await self.send({"type": "before_leave", "reason": reason, "open": open_, "voices": voices,
                          "utterance": u.model_dump() if u else None})
+
+    def voices_to_check(self) -> list[dict]:
+        """Voices the user should confirm before the review reads the transcript: a role guessed from the words, or no
+        role yet while lines still say unknown (current connection). With a sample line each, to recognise the voice."""
+        conn = self.label_source.connections if self.label_source is not None else None
+        out = {}
+        for u in self.store.utterances:
+            label, c = self.line_labels.get(u.id, (None, None))
+            if not label or label == "PENDING" or c != conn:
+                continue
+            if label in self.inferred or (label not in self.speaker_map and u.speaker == "unknown"):
+                v = out.setdefault(label, {"label": label, "speaker": self.speaker_map.get(label),
+                                           "guessed": label in self.inferred, "lines": 0, "sample": u.text[:90]})
+                v["lines"] += 1
+        return list(out.values())
 
     async def end_interview(self) -> None:
         self.audit.write("user", "interview_ended")
@@ -706,6 +739,7 @@ class Session:
         """Stop listening: no more input, gate or cue calls for this session."""
         if self.stopped:
             return
+        self.stopped_at_ms = self.elapsed_ms()
         self.stopped = reason
         await self.stop_replay()
         await self.stop_audio_file()
@@ -757,6 +791,30 @@ class Session:
             return self.manual_speaker
         return self.speaker_map.get(label or "", "unknown")
 
+    def unidentified_voices(self, window: list[Utterance]) -> dict[str, str]:
+        """Line id -> voice label for lines in the window whose speaker is unknown and whose voice nobody has mapped
+        (current speech-to-text connection only: labels restart on a new one)."""
+        conn = self.label_source.connections if self.label_source is not None else None
+        out = {}
+        for u in window:
+            label, c = self.line_labels.get(u.id, (None, None))
+            if u.speaker == "unknown" and label and label != "PENDING" and c == conn and label not in self.speaker_map:
+                out[u.id] = label
+        return out
+
+    async def apply_voice_role(self, vr: VoiceRole) -> None:
+        """The gate's guess at a voice's role. Only for a voice nobody has mapped, from a line with that voice; shown as a
+        guess until the user confirms or changes it (set_speaker)."""
+        conn = self.label_source.connections if self.label_source is not None else None
+        if (self.stopped or vr.voice in self.speaker_map or vr.role not in self.pack.role_ids
+                or self.line_labels.get(vr.utterance_id) != (vr.voice, conn)):
+            self.events.write("voice_role_ignored", **vr.model_dump())
+            return
+        self.speaker_map[vr.voice] = self.inferred[vr.voice] = vr.role
+        self.audit.write("system", "speaker_inferred", label=vr.voice, speaker=vr.role, utterance_id=vr.utterance_id)
+        await self.send({"type": "mic_status", "mic": self.mic_status(), "detail": "voice_guessed"})
+        await self._relabel_past(vr.voice, vr.role, actor="system")
+
     def build_mic(self, source: str = "mic") -> tuple[AssemblyAITranscriber | None, str]:
         provider, model = self.settings.model_for("stt")
         if provider != "assemblyai":
@@ -778,7 +836,7 @@ class Session:
         if detail == "reconnected" and (self.speaker_map or self.labels_seen):
             # AssemblyAI labels restart on a new connection: "A" may now be someone else
             self.audit.write("system", "speaker_labels_reset", mapping=self.speaker_map)
-            self.speaker_map, self.labels_seen = {}, []
+            self.speaker_map, self.labels_seen, self.inferred = {}, [], {}
             detail = "reconnected: voice labels reset, please map voices again"
         if state in ("reconnecting", "failed"):
             self.audit.write("system", f"mic_{state}", detail=detail)
@@ -909,17 +967,29 @@ class Session:
         """label given: map an AssemblyAI label; label None: the manual toggle (speaker None = automatic)."""
         if speaker is not None and speaker not in self.pack.role_ids + ["unknown"]:
             return f"speaker must be one of: {', '.join(self.pack.role_ids)} or unknown"
+        guessed = label is not None and self.inferred.pop(label, None) is not None
         if label is None:
             self.manual_speaker = speaker
         elif speaker is None:
             self.speaker_map.pop(label, None)
         else:
             self.speaker_map[label] = speaker
-        self.audit.write("user", "speaker_set", label=label, speaker=speaker)
+        self.audit.write("user", "speaker_set", label=label, speaker=speaker, **({"was_guess": True} if guessed else {}))
+        if guessed:  # lines the guess relabelled follow the user's choice (back to unknown when cleared)
+            await self._follow_user_choice(label, speaker or "unknown")
         await self.send({"type": "mic_status", "mic": self.mic_status()})
         if label is not None and speaker not in (None, "unknown"):
             await self._relabel_past(label, speaker)
         return None
+
+    async def _follow_user_choice(self, label: str, speaker: str) -> None:
+        for i, u in enumerate(self.store.utterances):
+            if self.inferred_lines.get(u.id) == label and u.speaker != speaker:
+                old = u.speaker
+                self.store.utterances[i] = u = u.model_copy(update={"speaker": speaker})
+                self.events.write("speaker_corrected", utterance_id=u.id, old=old, new=speaker, label=label, by="user")
+                await self.send({"type": "utterance_update", "utterance": u.model_dump()})
+        self.inferred_lines = {k: v for k, v in self.inferred_lines.items() if v != label}
 
     async def set_line_speaker(self, utterance_id: str, speaker: str) -> str | None:
         """The user corrects who said one line (speaker labels can be wrong, most often on a short answer right after
@@ -938,7 +1008,7 @@ class Session:
         await self.send({"type": "utterance_update", "utterance": u.model_dump()})
         return None
 
-    async def _relabel_past(self, label: str, speaker: str) -> None:
+    async def _relabel_past(self, label: str, speaker: str, actor: str = "user") -> None:
         """Earlier lines from this voice that still say unknown take the new mapping. Only lines from the current
         AssemblyAI connection (labels restart on a new one). The transcript file stays append-only: each change is a
         `speaker_corrected` event, applied wherever the saved transcript is read (store.read_utterances)."""
@@ -947,11 +1017,14 @@ class Session:
         for i, u in enumerate(self.store.utterances):
             if u.speaker == "unknown" and self.line_labels.get(u.id) == (label, conn):
                 self.store.utterances[i] = u = u.model_copy(update={"speaker": speaker})
-                self.events.write("speaker_corrected", utterance_id=u.id, old="unknown", new=speaker, label=label)
+                self.events.write("speaker_corrected", utterance_id=u.id, old="unknown", new=speaker, label=label,
+                                  **({"by": "guess"} if actor == "system" else {}))
                 await self.send({"type": "utterance_update", "utterance": u.model_dump()})
                 changed.append(u.id)
+                if actor == "system":
+                    self.inferred_lines[u.id] = label
         if changed:
-            self.audit.write("user", "speaker_relabelled", label=label, speaker=speaker, utterance_ids=changed)
+            self.audit.write(actor, "speaker_relabelled", label=label, speaker=speaker, utterance_ids=changed)
 
     async def stop_replay(self) -> None:
         if self.replay_task and not self.replay_task.done():

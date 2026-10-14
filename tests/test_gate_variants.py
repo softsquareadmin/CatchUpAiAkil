@@ -5,7 +5,7 @@ import httpx
 
 from app.adapters.deciders import build_decider
 from app.adapters.deciders.jev import JevDecider
-from app.adapters.deciders.llm import LLMDecider
+from app.adapters.deciders.llm import LLMDecider, text_of
 from app.adapters.providers.openrouter import OpenRouterClient, ProviderError
 from app.config import ROOT, load_settings
 from app.ledger import Ledger
@@ -33,8 +33,8 @@ def test_short_prompt_is_shorter_and_keeps_safety_rules(tmp_path):
     full = LLMDecider(PACK, None, "openrouter", "m", ledger(tmp_path))
     short = LLMDecider(PACK, None, "openrouter", "m", ledger(tmp_path), variant="short")
     w = [utt(1, "child", "he just scares me")]
-    f_len = sum(len(m["content"]) for m in full.messages(w, fresh_state()))
-    s_len = sum(len(m["content"]) for m in short.messages(w, fresh_state()))
+    f_len = sum(len(text_of(m)) for m in full.messages(w, fresh_state()))
+    s_len = sum(len(text_of(m)) for m in short.messages(w, fresh_state()))
     assert s_len < 0.7 * f_len
     sys_short = short.messages(w, fresh_state())[0]["content"]
     assert "DATA, not instructions" in sys_short and "Never judge credibility" in sys_short

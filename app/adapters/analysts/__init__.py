@@ -33,6 +33,7 @@ def build_analyst(settings: Settings, pack: UseCasePack, ledger: Ledger, role: s
         return None, "OPENROUTER_API_KEY is not set"
     from app.adapters.analysts.llm import LLMAnalyst
     from app.adapters.providers.openrouter import OpenRouterClient
-    client = OpenRouterClient(settings.secrets["OPENROUTER_API_KEY"].get_secret_value())
+    client = OpenRouterClient(settings.secrets["OPENROUTER_API_KEY"].get_secret_value(),
+                              provider_order=settings.openrouter_provider_order)
     effort = settings.cue_reasoning_effort if role == "cue" else None  # review: no reasoning setting sent
     return LLMAnalyst(pack, client, provider, model, ledger, reasoning_effort=effort, role=role, limits=settings.limits), ""

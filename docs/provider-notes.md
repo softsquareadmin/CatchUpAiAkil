@@ -48,6 +48,18 @@ Note: the spec suggested Claude Haiku 4.5 for cues; Haiku 5.5 is the current Hai
   API's own endpoint and structured-output format, usage and cost fields), a price entry, a `fallback_model` per role,
   and tests. Not built.
 
+## Prompt caching (Gemini through OpenRouter) — checked 2026-10-14
+- Docs: https://openrouter.ai/docs/features/prompt-caching. Usage reports `prompt_tokens_details.cached_tokens` and
+  `cache_write_tokens`. Reads cost 0.25x input per the docs (OpenRouter lists $0.075/M read for gemini-3.8-flash).
+- **No caching happened before 2026-10-14**: gate ledger cost equalled the full token price on every call.
+- Measured (small paid probes, about $0.04 total):
+  - The prompt needs an explicit `cache_control: {"type": "ephemeral"}` on a content part. It works in the system or the user message, and with a ~2,800-token prefix.
+  - **The cache lives at one provider.** OpenRouter spreads gemini-3.8-flash over "Google AI Studio" and "Google" (Vertex). Only AI Studio hit the cache, and with `require_parameters` the calls went to Vertex: no hits.
+  - Pinning `provider.order: ["google-ai-studio"]` gave a hit on every call. The slug `google-vertex` did not match: each call took ~14.5 s, then fell back to AI Studio. Avoid it.
+- App: `openrouter_provider_order` (settings.yaml, per model) and `gate_prompt_cache`. The gate's system prompt + checklist are the cached prefix.
+- Live gate check (CPS script, 4 calls): input ~2,500 tokens, 2,185 cached; $0.0011 per call vs $0.0025 at full price (**-57%**); 2.5-4.7 s.
+- **Data routing:** pinning means Gemini traffic goes to Google AI Studio, not Vertex. Check AI Studio's paid-tier data terms before real data.
+
 ## Jev (TypeSafe) via OpenRouter Decisions API — checked 2026-10-08
 - Docs: https://openrouter.ai/docs/guides/community/jev-tutorial.md and https://openrouter.ai/docs/guides/community/jev.md
 - `POST https://openrouter.ai/api/alpha/decisions` (alpha), Bearer OpenRouter key. Body `{model, state, questions}`.

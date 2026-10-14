@@ -213,16 +213,29 @@ def test_dismiss_clears_required_and_gate_cannot_reraise_on_old_evidence(tmp_pat
     asyncio.run(go())
 
 
-def test_level_change_withdraws_card(tmp_path):
+def test_required_becoming_suggested_keeps_the_card_as_a_suggestion(tmp_path):
+    """2026-10-14: a new suggested card waits for the user's next line and was lost when the interview ended first."""
     script = {"u0001": upd("child_safety_feelings", "partial", "required", "u0001", "I am afraid of him"),
               "u0002": upd("child_safety_feelings", "covered", "suggested", "u0002", "When he yells")}
     s, sent = make_session(tmp_path, script)
     asyncio.run(say(s, AFRAID, (2, "child", "When he yells.")))
     cues = [m for m in sent if m["type"] == "cue"]
+    assert [c["level"] for c in cues] == ["required"] and not [m for m in sent if m["type"] == "cue_withdrawn"]
+    relabel = [m for m in sent if m["type"] == "cue_update" and m.get("level") == "suggested"]
+    assert relabel and relabel[0]["cue"]["id"] == cues[0]["cue"]["id"]
+    assert s.board.active == {"child_safety_feelings": cues[0]["cue"]["id"]}
+    assert s.board.level[cues[0]["cue"]["id"]] == "suggested"
+
+
+def test_other_level_changes_still_withdraw_the_card(tmp_path):
+    script = {"u0001": upd("child_safety_feelings", "partial", "suggested", "u0001", "I am afraid of him"),
+              "u0002": upd("child_safety_feelings", "partial", "required", "u0002", "he just scares me")}
+    s, sent = make_session(tmp_path, script)
+    asyncio.run(say(s, AFRAID, SCARES))
+    cues = [m for m in sent if m["type"] == "cue"]
     withdrawn = [m for m in sent if m["type"] == "cue_withdrawn"]
-    assert [c["level"] for c in cues] == ["required", "suggested"]
+    assert [c["level"] for c in cues] == ["suggested", "required"]
     assert withdrawn and withdrawn[0]["id"] == cues[0]["cue"]["id"]
-    assert s.board.active == {"child_safety_feelings": cues[1]["cue"]["id"]}
 
 
 def test_failed_cue_is_retried_on_next_line_at_most_twice(tmp_path):
@@ -536,9 +549,10 @@ def test_gate_gets_the_flags_raised_and_may_only_name_them_in_same_as(tmp_path):
     assert "same_as" in s["properties"]["flags"]["items"]["required"]
     d = LLMDecider(PACK, object(), "openrouter", "m", Ledger(tmp_path, "s", "exp", 1.0, prices=FAKE_PRICES))
     raised = [{"id": "c001", "topic_id": "child_safety_feelings", "note": "The child said she is afraid of Dave."}]
-    with_flags = d.messages(WINDOW, {}, flags_raised=raised)[1]["content"]
+    from app.adapters.deciders.llm import text_of
+    with_flags = text_of(d.messages(WINDOW, {}, flags_raised=raised)[1])
     assert "<flags_raised>" in with_flags and '"id":"c001"' in with_flags
-    assert "<flags_raised>" not in d.messages(WINDOW, {})[1]["content"]
+    assert "<flags_raised>" not in text_of(d.messages(WINDOW, {})[1])
     assert "<flags_raised>" in d.system and "same_as" in d.system
 
 

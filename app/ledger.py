@@ -24,6 +24,7 @@ class LedgerRow(BaseModel):
     provider: str
     model: str
     input_tokens: int = 0
+    cached_input_tokens: int = 0  # part of input_tokens read from the provider's prompt cache (billed lower)
     output_tokens: int = 0
     audio_seconds: float = 0.0
     cost_usd: float = 0.0
@@ -73,7 +74,7 @@ class Ledger:
     def record(self, role: str, provider: str, model: str, *, input_tokens: int = 0,
                output_tokens: int = 0, audio_seconds: float = 0.0, provider_cost_usd: float | None = None,
                latency_ms: int = 0, ok: bool = True, error: str | None = None, status: int | None = None,
-               attempt: int = 1, waited_s: float = 0.0) -> LedgerRow:
+               attempt: int = 1, waited_s: float = 0.0, cached_input_tokens: int = 0) -> LedgerRow:
         if provider_cost_usd is not None:
             cost, source = provider_cost_usd, "provider"
         else:
@@ -82,7 +83,8 @@ class Ledger:
         row = LedgerRow(
             ts=datetime.now(timezone.utc).isoformat(), session_id=self.session_id,
             experiment=self.experiment, pack=self.pack, role=role, provider=provider, model=model,
-            input_tokens=input_tokens, output_tokens=output_tokens, audio_seconds=audio_seconds,
+            input_tokens=input_tokens, cached_input_tokens=cached_input_tokens, output_tokens=output_tokens,
+            audio_seconds=audio_seconds,
             cost_usd=cost, cost_source=source, latency_ms=latency_ms, ok=ok, error=error, status=status,
             attempt=attempt, waited_s=waited_s)
         with self.path.open("a", encoding="utf-8") as f:

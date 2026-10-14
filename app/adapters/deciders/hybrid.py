@@ -18,6 +18,7 @@ OnPartial = Callable[[GateResult], Awaitable[None]]
 class HybridDecider:
     staged = True  # the pipeline passes on_partial so the fast stage is shown before the LLM finishes
     takes_flags = True  # flags_raised goes to the LLM gate (Jev raises no flags)
+    takes_voices = True  # so do unidentified voices
 
     def __init__(self, jev: JevDecider, llm: LLMDecider, min_confidence: float):
         self.jev, self.llm, self.min_confidence = jev, llm, min_confidence
@@ -40,9 +41,11 @@ class HybridDecider:
         return fast
 
     async def evaluate(self, window: list[Utterance], checklist_state: dict[str, TopicState],
-                       on_partial: OnPartial | None = None, flags_raised: list[dict] = ()) -> GateResult:
+                       on_partial: OnPartial | None = None, flags_raised: list[dict] = (),
+                       voices: dict[str, str] | None = None) -> GateResult:
         self.last_error, self.last_fast = None, []
-        llm_task = asyncio.create_task(self.llm.evaluate(window, checklist_state, flags_raised=flags_raised))
+        llm_task = asyncio.create_task(self.llm.evaluate(window, checklist_state, flags_raised=flags_raised,
+                                                         voices=voices))
         try:
             answers = await self.jev.ask(window, checklist_state)
         except BaseException:
@@ -55,5 +58,6 @@ class HybridDecider:
         slow = await llm_task
         self.last_error = self.llm.last_error or self.jev.last_error
         if on_partial is None:  # single result: the LLM's updates come last so they win
-            slow = GateResult(updates=fast.updates + slow.updates, flags=slow.flags, answer_quality=slow.answer_quality)
+            slow = GateResult(updates=fast.updates + slow.updates, flags=slow.flags, answer_quality=slow.answer_quality,
+                              voice_roles=slow.voice_roles)
         return slow

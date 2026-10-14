@@ -60,6 +60,7 @@ function onMessage(msg) {
       // the clock runs from Start interview (also right after a reload); before that it shows 00:00
       state.begun = !!msg.begun;
       state.sessionStart = state.begun ? Date.now() - (msg.elapsed_ms || 0) : null;
+      state.stoppedAt = msg.stopped ? Date.now() : null;  // a stopped interview's clock stays where it stopped
       tick();
       state.sessionId = msg.session_id;
       storeSession(msg.session_id);
@@ -95,6 +96,7 @@ function onMessage(msg) {
     case "mic_status":
       setMic(msg.mic, msg.detail);
       if (msg.detail && msg.detail.includes("labels reset")) showError(`Mic ${msg.detail}.`);
+      if (msg.detail === "voice_guessed") toast("A voice was matched to a speaker from what was said. Check it under Voices.", "info");
       break;
     case "utterance": addUtterance(msg.utterance); setStarted(true); break;
     case "utterance_update": {  // a voice was mapped after its lines were spoken: they now show the role
@@ -117,7 +119,7 @@ function onMessage(msg) {
     case "cue_update": {
       const prev = state.cues.get(msg.cue.id);
       if (msg.added) { state.cues.delete(msg.cue.id); state.seenCues.delete(msg.cue.id); }  // said again: back on top, flashes
-      state.cues.set(msg.cue.id, { ...prev, cue: msg.cue });
+      state.cues.set(msg.cue.id, { ...prev, cue: msg.cue, ...(msg.level ? { level: msg.level } : {}) });
       renderCards();
       break;
     }
@@ -352,7 +354,26 @@ function beforeLeave(msg) {
       return el("li", {}, `${t.label} (${parts.join(", ")})`);
     })));
   } else body.push(para("All required topics are covered."));
-  showDialog("Before you leave", body, "End interview", "Keep going", () => send({ type: "end_confirm" }), () => {});
+  // voices still guessed or without a speaker: confirmed here, before the review reads who said what
+  const picks = (msg.voices || []).map((v) => {
+    const sel = el("select", { "aria-label": `Voice ${v.label} is` });
+    sel.add(new Option("Unknown", "", false, !v.speaker));
+    for (const r of state.pack.roles) sel.add(new Option(r.label, r.id, false, v.speaker === r.id));
+    return { v, sel };
+  });
+  if (picks.length) {
+    body.push(para("Check who each voice is. The review uses these speakers:"));
+    body.push(el("div", { className: "voice-check" }, ...picks.flatMap(({ v, sel }) => [
+      el("span", {}, `Voice ${v.label}${v.guessed ? " (guessed)" : ""}`, el("small", {}, `“${v.sample}”${v.lines > 1 ? ` + ${v.lines - 1} more` : ""}`)),
+      sel])));
+  }
+  const end = () => {
+    for (const { v, sel } of picks) {
+      if (sel.value || v.guessed) send({ type: "speaker", label: v.label, speaker: sel.value || "unknown" });
+    }
+    send({ type: "end_confirm" });
+  };
+  showDialog("Before you leave", body, "End interview", "Keep going", end, () => {});
 }
 
 function setRec() {
@@ -365,6 +386,7 @@ function setRec() {
 }
 
 function setStopped(reason) {
+  if (reason && !state.stopped && !state.stoppedAt) { state.stoppedAt = Date.now(); tick(); }  // the clock stops
   state.stopped = reason;
   setRec();
   syncControls();
@@ -491,11 +513,19 @@ function setMic(m, detail) {
   const box = $("labelMap");
   box.replaceChildren();
   for (const label of m.labels) {
-    const sel = el("select", { "aria-label": `Voice ${label} is` });
+    const guessed = (m.inferred || []).includes(label);
+    const sel = el("select", { "aria-label": `Voice ${label} is${guessed ? " (guessed)" : ""}` });
     sel.add(new Option("not set", "", false, !m.mapping[label]));
     for (const r of state.pack.roles) sel.add(new Option(r.label, r.id, false, m.mapping[label] === r.id));
     sel.addEventListener("change", () => send({ type: "speaker", label, speaker: sel.value || null }));
-    box.append(el("span", {}, `Voice ${label}`), sel);
+    const pick = el("span", { className: "voice-pick" }, sel);
+    if (guessed) {  // a guess from the words: one tap confirms it, or pick another role
+      const ok = el("button", { type: "button", className: "badge badge-neutral",
+        title: "Guessed from what was said. Tap to confirm, or choose another speaker." }, "Guess ✓");
+      ok.addEventListener("click", () => send({ type: "speaker", label, speaker: m.mapping[label] }));
+      pick.append(ok);
+    }
+    box.append(el("span", {}, `Voice ${label}`), pick);
   }
   setRec();
 }
@@ -712,7 +742,7 @@ $("pastePlay").addEventListener("click", () => {
 
 function tick() {
   if (!state.sessionStart) { $("elapsed").textContent = "00:00"; return; }
-  const s = Math.floor((Date.now() - state.sessionStart) / 1000);
+  const s = Math.floor(((state.stoppedAt || Date.now()) - state.sessionStart) / 1000);
   $("elapsed").textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 setInterval(tick, 1000);

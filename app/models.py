@@ -90,10 +90,18 @@ class AnswerQuality(BaseModel):
     quality: Literal["ok", "vague", "evasive", "incomplete", "contradiction"]
 
 
+class VoiceRole(BaseModel):
+    """The gate's guess at an unidentified voice's role, from what was said (a speech-to-text voice label, e.g. "B")."""
+    voice: str
+    role: str
+    utterance_id: str  # the line that shows it
+
+
 class GateResult(BaseModel):
     updates: list[TopicUpdate] = []
     flags: list[Flag] = []
     answer_quality: AnswerQuality | None = None
+    voice_roles: list[VoiceRole] = []
 
 
 class Cue(BaseModel):

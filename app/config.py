@@ -28,6 +28,8 @@ class Settings(BaseModel):
     hybrid_min_confidence: float = 0.9
     gate_prompt: Literal["full", "short"] = "full"
     gate_temperature: float | None = None  # None = provider default (Google recommends 1.0 for Gemini 3)
+    gate_prompt_cache: bool = True  # mark the gate's unchanging prompt part (rules + checklist) for prompt caching
+    openrouter_provider_order: dict[str, list[str]] = {}  # model id -> provider slugs to try first (prompt caching)
     jev_model: str = "typesafe/jev-1.13"
     jev_min_probability: float = 0.6
     jev_questions: Literal["choice", "yesno", "atomic"] = "choice"

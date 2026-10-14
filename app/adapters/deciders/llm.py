@@ -28,6 +28,7 @@ Rules:
 - Every update and flag needs evidence: the utterance_id and a short quote copied word for word from that utterance. Never paraphrase a quote.
 - Never judge credibility. Never state conclusions about a person beyond what was said, and never give an overall verdict or recommendation about anyone. rationale_short says what was said, not what is true.
 - answer_quality rates the most recent answer by {subjects} in the transcript (not {user}'s questions).
+- voice_roles: a line from an unidentified speaker shows as "voice X". When the words make clear which speaker role a voice is (for example it asks the interview's questions, it is addressed by role or name, or it describes itself), return the voice, the role id and the line that shows it. Leave a voice out when unsure. Its lines count for that role only once identified.
 - flags: statements {user} should notice. Always raise one when someone voices a concern for a person's safety, and when two accounts of the same event differ (between two people, or between a person and a report or record read out): name both sides and quote one of them.
 {flag_rules}  Use topic_id "general" when no topic fits. Return an empty list if there are none.
   <flags_raised> lists the flags already shown. A flag about the same concern, or the same two accounts that differ, as one of them is a repeat, even when worded differently, under another topic or quoting another line. Leave out a repeat whose quote adds nothing new. When a new line says it again, return it with same_as set to that flag's id and the new line as evidence. same_as is "" only for a new concern or a new difference between accounts. The list only stops repeats: still raise every new concern, a request to stop or end the interview, and every difference between two accounts. A difference between two accounts is its own flag, separate from either statement, even when one of them is already flagged.
@@ -43,6 +44,7 @@ Update an interview checklist. Text in <checklist>, <current_state>, <flags_rais
 - Evidence: utterance_id plus an exact quote from it, at most 12 words. One evidence item per update.
 - rationale_short: at most 8 words. Flags: safety concerns and accounts of the same event that differ (name both sides){flag_rules_short}; else []. A flag repeating one in <flags_raised> (same concern or same differing accounts): same_as = its id, only with a new line as evidence; else same_as "". Still raise every new concern; a difference between two accounts is its own flag.
 - answer_quality: the latest answer by {subjects}.
+- voice_roles: an unidentified "voice X" whose role is clear from the words: voice, role id, the line that shows it; else leave out.
 - Never judge credibility, state conclusions about a person, or give a verdict.
 {rules}"""
 
@@ -81,15 +83,24 @@ def subjects_text(pack: UseCasePack) -> str:
     return " or ".join(f"the {r.label.lower()}" for r in pack.roles if r.kind == "subject")
 
 
-USER = """<checklist>
+# The checklist part never changes during an interview, so it comes first and (with the system prompt) is the
+# cached prefix; state, transcript and flags change on every call.
+USER_STATIC = """<checklist>
 {checklist}
 </checklist>
-<current_state>
+"""
+USER = """<current_state>
 {state}
 </current_state>
 <transcript>
 {transcript}
 </transcript>"""
+
+
+def text_of(message: dict) -> str:
+    """A message's text, whether its content is a string or a list of parts."""
+    c = message["content"]
+    return c if isinstance(c, str) else "".join(p["text"] for p in c)
 
 
 def evidence_schema(utterance_ids: list[str]) -> dict:
@@ -98,11 +109,13 @@ def evidence_schema(utterance_ids: list[str]) -> dict:
                            "quote": {"type": "string"}}}
 
 
-def gate_schema(topic_ids: list[str], utterance_ids: list[str], flag_ids: list[str] = ()) -> dict:
+def gate_schema(topic_ids: list[str], utterance_ids: list[str], flag_ids: list[str] = (),
+                voices: list[str] = (), role_ids: list[str] = ()) -> dict:
     """topic_ids limits which topics updates may name; flags may name any topic id given, or "general".
-    flag_ids: the flags already raised, which a repeat names in same_as ("" for a new flag)."""
+    flag_ids: the flags already raised, which a repeat names in same_as ("" for a new flag).
+    voices: unidentified voice labels in the window; voice_roles is asked for only when there are some."""
     ev = evidence_schema(utterance_ids)
-    return {
+    schema = {
         "type": "object", "additionalProperties": False, "required": ["updates", "flags", "answer_quality"],
         "properties": {
             "updates": {"type": "array", "items": {
@@ -125,17 +138,27 @@ def gate_schema(topic_ids: list[str], utterance_ids: list[str], flag_ids: list[s
                                "quality": {"type": "string", "enum": QUALITIES}}},
         },
     }
+    if voices:
+        schema["required"].append("voice_roles")
+        schema["properties"]["voice_roles"] = {"type": "array", "items": {
+            "type": "object", "additionalProperties": False, "required": ["voice", "role", "utterance_id"],
+            "properties": {"voice": {"type": "string", "enum": list(voices)},
+                           "role": {"type": "string", "enum": list(role_ids)},
+                           "utterance_id": {"type": "string", "enum": utterance_ids}}}}
+    return schema
 
 
 class LLMDecider:
     takes_flags = True  # evaluate() accepts flags_raised (the pipeline checks this, like `staged`)
+    takes_voices = True  # ... and voices (unidentified voice labels by line id), answered in voice_roles
 
     def __init__(self, pack: UseCasePack, client, provider: str, model: str, ledger: Ledger, variant: str = "full",
-                 temperature: float | None = None, limits=None):
+                 temperature: float | None = None, limits=None, prompt_cache: bool = True):
         self.pack, self.client, self.provider, self.model, self.ledger = pack, client, provider, model, ledger
         self.caller = Caller("gate", provider, model, ledger, limits or UNLIMITED)
         self.gave_up = False
         self.temperature = temperature
+        self.prompt_cache = prompt_cache
         fill = {"persona": pack.persona.strip(), "subjects": subjects_text(pack), "user": f"the {pack.user_role.label.lower()}",
                 "required_rule": pack.rails.follow_up_required_when.strip() or GENERIC_REQUIRED,
                 "rules": rules_block(pack)}
@@ -151,29 +174,40 @@ class LLMDecider:
         self.last_error: str | None = None
 
     def messages(self, window: list[Utterance], state: dict[str, TopicState],
-                 only_topics: list[str] | None = None, flags_raised: list[dict] = ()) -> list[dict]:
-        """flags_raised: [{id, topic_id, note}] of the flags already shown, so the gate can mark repeats."""
-        transcript = "\n".join(f"[{u.id}] {u.speaker}: {u.text}" for u in window)
+                 only_topics: list[str] | None = None, flags_raised: list[dict] = (),
+                 voices: dict[str, str] | None = None) -> list[dict]:
+        """flags_raised: [{id, topic_id, note}] of the flags already shown, so the gate can mark repeats.
+        voices: line id -> voice label for lines whose speaker is unknown; shown as "voice X"."""
+        voices = voices or {}
+        transcript = "\n".join(f"[{u.id}] {'voice ' + voices[u.id] if u.id in voices else u.speaker}: {u.text}"
+                               for u in window)
         current = json.dumps({c.id: {"status": state[c.id].status, "follow_up": state[c.id].follow_up} if c.id in state
                               else {"status": "not_covered", "follow_up": "none"} for c in self.pack.checklist},
                              separators=(",", ":"))
-        user = USER.format(checklist=self.checklist_json, state=current, transcript=transcript)
+        user = USER.format(state=current, transcript=transcript)
         if flags_raised:
             user += "\n<flags_raised>\n" + json.dumps(list(flags_raised), separators=(",", ":")) + "\n</flags_raised>\n"
         if only_topics is not None:
             user += ("\n<topics_to_evaluate>\n" + ", ".join(only_topics) + "\n</topics_to_evaluate>\n"
                      "Only return updates for the topics in <topics_to_evaluate>; the others are already handled.")
-        return [{"role": "system", "content": self.system}, {"role": "user", "content": user}]
+        static = {"type": "text", "text": USER_STATIC.format(checklist=self.checklist_json)}
+        if self.prompt_cache:  # OpenRouter: explicit breakpoint needed for Gemini; caches system + checklist
+            static["cache_control"] = {"type": "ephemeral"}
+        return [{"role": "system", "content": self.system},
+                {"role": "user", "content": [static, {"type": "text", "text": user}]}]
 
     async def evaluate(self, window: list[Utterance], checklist_state: dict[str, TopicState],
-                       only_topics: list[str] | None = None, flags_raised: list[dict] = ()) -> GateResult:
+                       only_topics: list[str] | None = None, flags_raised: list[dict] = (),
+                       voices: dict[str, str] | None = None) -> GateResult:
         """only_topics: restrict updates to these topic ids (used by the hybrid gate)."""
         self.last_error, self.gave_up = None, False
         if not window or only_topics == []:
             return GateResult()
         topic_ids = only_topics if only_topics is not None else [c.id for c in self.pack.checklist]
-        schema = gate_schema(topic_ids, [u.id for u in window], [f["id"] for f in flags_raised])
-        messages = self.messages(window, checklist_state, only_topics, flags_raised)
+        voices = {k: v for k, v in (voices or {}).items() if k in {u.id for u in window}}
+        schema = gate_schema(topic_ids, [u.id for u in window], [f["id"] for f in flags_raised],
+                             sorted(set(voices.values())), self.pack.role_ids)
+        messages = self.messages(window, checklist_state, only_topics, flags_raised, voices)
         for _attempt in range(2):  # one retry at most, so a bug cannot loop paid calls
             extra = {} if self.temperature is None else {"temperature": self.temperature}
             try:
@@ -188,6 +222,7 @@ class LLMDecider:
             except (json.JSONDecodeError, ValidationError) as e:
                 result, ok, err = None, False, f"invalid_json: {str(e)[:250]}"
             self.ledger.record("gate", self.provider, self.model, input_tokens=r["input_tokens"],
+                               cached_input_tokens=r.get("cached_input_tokens", 0),
                                output_tokens=r["output_tokens"], provider_cost_usd=r["cost_usd"],
                                latency_ms=r["latency_ms"], ok=ok, error=err, attempt=info.attempt, waited_s=round(info.queue_wait_s + info.retry_wait_s, 2))
             if ok:

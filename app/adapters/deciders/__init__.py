@@ -21,11 +21,13 @@ def build_decider(settings: Settings, pack: UseCasePack, ledger: Ledger) -> tupl
     if not settings.has_key("OPENROUTER_API_KEY"):
         return None, "OPENROUTER_API_KEY is not set"
     from app.adapters.providers.openrouter import OpenRouterClient
-    client = OpenRouterClient(settings.secrets["OPENROUTER_API_KEY"].get_secret_value())
+    client = OpenRouterClient(settings.secrets["OPENROUTER_API_KEY"].get_secret_value(),
+                              provider_order=settings.openrouter_provider_order)
     from app.adapters.deciders.jev import JevDecider
     from app.adapters.deciders.llm import LLMDecider
     llm = LLMDecider(pack, client, provider, model, ledger, variant=settings.gate_prompt,
-                     temperature=settings.gate_temperature, limits=settings.limits)
+                     temperature=settings.gate_temperature, limits=settings.limits,
+                     prompt_cache=settings.gate_prompt_cache)
     if settings.gate_adapter == "llm":
         return llm, ""
     jev = JevDecider(pack, client, "openrouter", settings.jev_model, ledger, settings.jev_min_probability,

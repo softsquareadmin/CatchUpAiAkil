@@ -454,3 +454,148 @@ def test_user_corrects_one_lines_speaker(tmp_path):
     audit = [json.loads(l) for l in (tmp_path / s.id / "audit.jsonl").read_text().splitlines()]
     assert [a["details"] for a in audit if a["action"] == "line_speaker_changed"] == \
         [{"utterance_id": "u0001", "old": "worker", "new": "child"}]
+
+
+# ---- roles guessed from the words (2026-10-14): the user's choice always wins ----
+
+def voiced_session(tmp_path, lines):
+    """A session whose lines carry voice labels on connection 1, all speaker unknown."""
+    s, sent = session(tmp_path)
+
+    class Source:
+        connections, last_label, last_label_confidence, last_part, last_words = 1, None, None, None, []
+    s.label_source = Source()
+    for i, label in enumerate(lines, 1):
+        u = s.store.append(Utterance(id="", session_id=s.id, t_start_ms=i, t_end_ms=i + 1, speaker="unknown",
+                                     text=f"line {i}", is_final=True, source="mic"))
+        s.line_labels[u.id] = (label, 1)
+    return s, sent
+
+
+def test_gate_sees_unidentified_voices_and_may_name_their_roles(tmp_path):
+    from app.adapters.deciders.llm import LLMDecider, gate_schema, text_of
+    s, _ = voiced_session(tmp_path, ["A", "B", "A"])
+    voices = s.unidentified_voices(s.store.utterances)
+    assert voices == {"u0001": "A", "u0002": "B", "u0003": "A"}
+    schema = gate_schema(["t"], ["u0001", "u0002"], voices=["A", "B"], role_ids=PACK.role_ids)
+    vr = schema["properties"]["voice_roles"]["items"]["properties"]
+    assert vr["voice"]["enum"] == ["A", "B"] and vr["role"]["enum"] == PACK.role_ids
+    assert "voice_roles" not in gate_schema(["t"], ["u0001"])["properties"]  # only asked for when needed
+    d = LLMDecider(PACK, None, "openrouter", "m", Ledger(tmp_path, "s", "e", 1.0))
+    assert "[u0002] voice B: line 2" in text_of(d.messages(s.store.utterances, {}, voices=voices)[1])
+    asyncio.run(s.set_speaker("A", "worker"))
+    assert s.unidentified_voices(s.store.utterances) == {"u0002": "B"}  # mapped voices are not asked about
+
+
+def test_a_guess_relabels_the_voice_and_is_shown_as_a_guess(tmp_path):
+    from app.models import VoiceRole
+    s, sent = voiced_session(tmp_path, ["A", "B", "A"])
+    asyncio.run(s.apply_voice_role(VoiceRole(voice="A", role="worker", utterance_id="u0001")))
+    assert [u.speaker for u in s.store.utterances] == ["worker", "unknown", "worker"]
+    assert s.mic_status()["inferred"] == ["A"] and s.speaker_map["A"] == "worker"
+    audit = (tmp_path / s.id / "audit.jsonl").read_text()
+    assert '"speaker_inferred"' in audit and '"actor": "system", "action": "speaker_relabelled"' in audit
+
+
+def test_a_guess_never_replaces_the_users_mapping_or_uses_another_voices_line(tmp_path):
+    from app.models import VoiceRole
+    s, _ = voiced_session(tmp_path, ["A", "B"])
+
+    async def go():
+        await s.set_speaker("A", "parent")
+        await s.apply_voice_role(VoiceRole(voice="A", role="worker", utterance_id="u0001"))  # user already chose
+        await s.apply_voice_role(VoiceRole(voice="B", role="child", utterance_id="u0001"))   # line is voice A
+        await s.apply_voice_role(VoiceRole(voice="B", role="judge", utterance_id="u0002"))   # not a role
+    asyncio.run(go())
+    assert s.speaker_map == {"A": "parent"} and s.inferred == {}
+    assert [u.speaker for u in s.store.utterances] == ["parent", "unknown"]
+
+
+def test_the_user_overrides_a_guess_and_its_lines_follow_including_later_ones(tmp_path):
+    from app.models import VoiceRole
+    s, sent = voiced_session(tmp_path, ["B", "A"])
+
+    async def go():
+        await s.apply_voice_role(VoiceRole(voice="B", role="parent", utterance_id="u0001"))
+        s.label_source.last_label = "B"  # a later line from the same voice takes the guessed role
+        await s.on_utterance(Utterance(id="", session_id=s.id, t_start_ms=9, t_end_ms=10, speaker=s.speaker_for("B"),
+                                       text="later", is_final=True, source="mic"))
+        await s.set_line_speaker("u0002", "worker")  # a line the user fixed by hand is not the guess's
+        await s.set_speaker("B", "child")
+    asyncio.run(go())
+    assert [u.speaker for u in s.store.utterances] == ["child", "worker", "child"]
+    assert s.inferred == {} and s.mic_status()["inferred"] == []
+    audit = [json.loads(l) for l in (tmp_path / s.id / "audit.jsonl").read_text().splitlines()]
+    assert any(a["action"] == "speaker_set" and a["details"].get("was_guess") for a in audit)
+
+
+def test_clearing_a_guess_puts_its_lines_back_to_unknown_and_a_reconnect_forgets_guesses(tmp_path):
+    from app.models import VoiceRole
+    s, _ = voiced_session(tmp_path, ["B"])
+
+    async def go():
+        await s.apply_voice_role(VoiceRole(voice="B", role="parent", utterance_id="u0001"))
+        await s.set_speaker("B", None)
+        assert s.store.utterances[0].speaker == "unknown"
+        await s.apply_voice_role(VoiceRole(voice="B", role="parent", utterance_id="u0001"))
+        await s._mic_status("listening", "reconnected")
+    asyncio.run(go())
+    assert s.inferred == {} and s.speaker_map == {}
+
+
+def test_the_session_passes_unidentified_voices_to_a_gate_that_takes_them(tmp_path):
+    from app.models import GateResult, VoiceRole
+    s, _ = voiced_session(tmp_path, [])
+    seen = []
+
+    class Gate:
+        takes_voices, last_error = True, None
+
+        async def evaluate(self, window, checklist_state, voices=None):
+            seen.append(dict(voices or {}))
+            return GateResult(voice_roles=[VoiceRole(voice="A", role="worker", utterance_id=window[-1].id)])
+    s.decider = Gate()
+
+    async def go():
+        s.label_source.last_label = "A"
+        await s.on_utterance(Utterance(id="", session_id=s.id, t_start_ms=1, t_end_ms=2, speaker="unknown",
+                                       text="Can you tell me what happened?", is_final=True, source="mic"))
+        await s.gate_idle()
+    asyncio.run(go())
+    assert seen == [{"u0001": "A"}] and s.store.utterances[0].speaker == "worker" and s.inferred == {"A": "worker"}
+
+
+def test_before_you_leave_lists_guessed_and_unmapped_voices_to_confirm(tmp_path):
+    from app.models import VoiceRole
+    s, sent = voiced_session(tmp_path, ["A", "B", "C", "B"])
+
+    async def go():
+        await s.apply_voice_role(VoiceRole(voice="A", role="worker", utterance_id="u0001"))
+        await s.set_speaker("C", "child")  # mapped by the user: nothing to check
+        await s.before_leave("end_button")
+        await s.set_speaker("A", "worker")  # the user confirms the guess
+        return s.voices_to_check()
+    after = asyncio.run(go())
+    msg = next(m for m in sent if m["type"] == "before_leave")
+    assert [(v["label"], v["speaker"], v["guessed"], v["lines"]) for v in msg["voices"]] == \
+        [("A", "worker", True, 1), ("B", None, False, 2)]
+    assert msg["voices"][1]["sample"] == "line 2"
+    assert [v["label"] for v in after] == ["B"]
+
+
+def test_the_clock_stops_when_the_interview_ends(tmp_path):
+    s, _ = session(tmp_path)
+    t = [100.0]
+    import app.pipeline as pipeline
+    real = pipeline.time.monotonic
+    pipeline.time.monotonic = lambda: t[0]
+    try:
+        async def go():
+            await s.begin()
+            t[0] += 30
+            await s.end_interview()
+            t[0] += 600
+            return s.elapsed_ms()
+        assert asyncio.run(go()) == 30000
+    finally:
+        pipeline.time.monotonic = real

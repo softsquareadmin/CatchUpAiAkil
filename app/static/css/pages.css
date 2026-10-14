@@ -53,6 +53,10 @@
 #typedText { flex: 1; min-width: 200px; }
 .paste-map { display: grid; grid-template-columns: max-content minmax(0, 240px); gap: var(--s2) var(--s3); align-items: center; width: 100%; }
 .paste-map:empty { display: none; }
+.voice-pick { display: flex; gap: var(--s2); align-items: center; min-width: 0; }
+.voice-pick select { flex: 1; min-width: 0; }
+.voice-check { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 180px); gap: var(--s2) var(--s3); align-items: center; margin-top: var(--s2); }
+.voice-check small { display: block; color: var(--muted); font-size: var(--t-sm); overflow-wrap: anywhere; }
 .mic-speaker { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); width: 100%; font-weight: 600; font-size: var(--t-sm); }
 
 /* follow-up cards and flags: the most prominent thing during the interview */
