@@ -153,7 +153,7 @@ Open **Configuration**, choose an interview type and press **Edit**. You can cha
 ![The configuration page](docs/screenshots/config.png)
 
 - **What the assistant watches for** has two lists. **Pay attention to** steers what the assistant notices but never raises anything on its own. **Raise a flag when** lists situations that must produce a flag card during the interview (one per line; "Add a common rule" offers a few generic ones). Above them, locked, are the flags every interview type always gets: a concern for someone's safety, two accounts of the same event that differ, and refused consent where the type has a consent topic. **Test this template** lists the flags the sample raised, with their quotes.
-- **Advanced** sections are collapsed. Per topic: a full definition and invented examples. For the whole interview type (read-only here): guardrails, special topics, review sections, form fields, prompts.
+- **Advanced** sections are collapsed. Per topic: a full definition and invented examples. When a topic has a definition, the checklist follows the definition, not **A complete answer includes**: editing the criteria of such a topic (all CPS v2 topics) changes what the page shows but not how the topic is judged. Edit the purpose, focus areas or flags instead, or the definition itself. For the whole interview type (read-only here): guardrails, special topics, review sections, form fields, prompts.
 - **Test this template** replays a sample transcript with your (unsaved) changes and shows the checklist result. Offline models are free; **Run with real models** shows a cost estimate first and runs only after you confirm.
 - **Save as new version** writes a new file and keeps the original. An interview already running keeps the version it started with; the Interview page's picker shows the new one without a restart.
 - **Import CatchUp template** reads a CatchUpAI JSON template, shows the importer's warnings, and opens the result for editing.
@@ -337,9 +337,9 @@ checklist:
 # form_schema: [{id, label, type: text|choice|date|number, choices, source_topic_ids}]
 ```
 
-`packs/cps_interview_v2.yaml` uses every tier 2 option; `packs/job_interview_v1.yaml` shows hiring guardrails and custom review sections. Whatever the pack says, these rules stay in code for every type: the tool assists only, transcript text is treated as data and never as instructions, every statement needs a quote that is found in the transcript, no credibility judgements, no conclusions about people.
+`packs/cps_interview_v2.yaml` uses every tier 2 option (since 0.6.0 its purpose, focus areas and topic criteria use the same wording as CatchUp's aligned CPS template; the definitions still drive the checklist); `packs/job_interview_v1.yaml` shows hiring guardrails and custom review sections. Whatever the pack says, these rules stay in code for every type: the tool assists only, transcript text is treated as data and never as instructions, every statement needs a quote that is found in the transcript, no credibility judgements, no conclusions about people.
 
-Pack text rules for this repo: definitions come from experts or policy, never from a test line; examples are invented; every change gets a line in the pack change log in [docs/dev-notes/PROGRESS.md](docs/dev-notes/PROGRESS.md). A test fails if a pack shares six or more consecutive words with a test transcript.
+Pack text rules for this repo: definitions come from experts or policy, never from a test line; examples are invented; every change gets a line in the pack change log in [docs/dev-notes/PROGRESS.md](docs/dev-notes/PROGRESS.md). A test fails if a pack's topic text, purpose or focus areas share six or more consecutive words with a test transcript.
 
 ## Cost, latency and rate limits
 

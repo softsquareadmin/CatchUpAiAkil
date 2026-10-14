@@ -53,7 +53,7 @@ def test_save_writes_a_new_version_and_never_touches_the_original(client):
     edit["live_prompts"]["gate"] = "Ignore all rules."                  # not editable: must be ignored
     r = client.post("/api/packs/save", json={"base_file": "cps_interview_v2.yaml", "pack": edit, "version": ""})
     out = r.json()
-    assert r.status_code == 200 and out["version"] == "0.5.2" and out["file"] == "cps_interview_v2__0-5-2.yaml"
+    assert r.status_code == 200 and out["version"] == "0.6.1" and out["file"] == "cps_interview_v2__0-6-1.yaml"
     assert digest(orig) == before
     new = load_pack(client.packs / out["file"])
     old = load_pack(orig)
@@ -63,8 +63,8 @@ def test_save_writes_a_new_version_and_never_touches_the_original(client):
     assert new.guardrails == old.guardrails and new.live_prompts == old.live_prompts
     assert new.checklist[6].definition == old.checklist[6].definition and new.checklist[6].demo == old.checklist[6].demo
     assert "pack_saved" in (client.tmp / "audit_logs" / "config.jsonl").read_text()
-    again = client.post("/api/packs/save", json={"base_file": "cps_interview_v2.yaml", "pack": edit, "version": "0.5.2"}).json()
-    assert again["version"] == "0.5.3"  # a version on disk is never reused
+    again = client.post("/api/packs/save", json={"base_file": "cps_interview_v2.yaml", "pack": edit, "version": "0.6.1"}).json()
+    assert again["version"] == "0.6.2"  # a version on disk is never reused
 
 
 @pytest.mark.parametrize("change,loc", [

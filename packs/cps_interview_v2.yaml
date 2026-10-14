@@ -5,14 +5,25 @@
 # review sections, prompt text); topic definitions unchanged. Change log: docs/dev-notes/PROGRESS.md "Pack change log".
 # 0.5.0 (2026-10-13): Safety Flags and Child's Direct Statements review sections, worded as CatchUp's aligned template.
 # 0.5.1 (2026-10-14, SPEC-report-readability): no Form fields section; report layout (lead_sections, live_flags_into).
+# 0.6.0 (2026-10-14, SPEC-config-alignment-3): purpose, pay_attention_to and topic criteria worded as CatchUp's aligned template (criteria show on the config page; definition still drives the gate).
 id: cps_interview_v2
-version: "0.5.1"   # 0.5.0: Safety Flags, Child's Direct Statements; 0.4.0: pack_format 2 (M7); 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
+version: "0.6.0"   # 0.5.0: Safety Flags, Child's Direct Statements; 0.4.0: pack_format 2 (M7); 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
 pack_format: 2
 name: CPS interview (parent and child)
 purpose: >
   A caseworker interviews a parent and a child about a concern reported to the agency. Track the required
-  topics, capture what each person says in their own words, mark answers that need a follow-up, and draft a
-  note for the caseworker to review. The tool assists; the caseworker decides.
+  topics, capture what each person says in their own words, flag answers that need a follow-up, and note where
+  accounts differ. Suggested follow-up questions must be open-ended and non-leading, and worded in simple
+  everyday words when the question is for the child. The tool assists; the caseworker decides. Never state or
+  imply whether abuse, maltreatment or neglect occurred, and never judge anyone's credibility.
+pay_attention_to:
+  - "A concern for someone's safety, including a child saying they are afraid or unsafe"
+  - "Two accounts of the same event differ, between people or with the report the worker reads out"
+  - "Someone refuses consent to recording"
+  - "The child's own words about what happened, how they feel at home, and who they feel safe or unsafe with"
+  - "Injury details as stated: what, where, when it was noticed, who was supervising, and whether care was sought"
+  - "Adults named as living in the home or caring for the child who were not interviewed"
+  - "How the child expresses distress or reluctance to speak, described as heard, not interpreted"
 roles:
   - {id: worker, label: Worker, kind: user, aliases: [worker, caseworker, cps, interviewer]}
   - {id: parent, label: Parent, kind: subject, aliases: [parent, mom, mother, dad, father, guardian]}
@@ -26,6 +37,9 @@ persona: >
 checklist:
   - id: recording_consent
     label: Consent to recording
+    criteria:
+      - "The parent agrees to the recording"
+      - "The child agrees to the recording"
     definition: >
       Required: the parent agrees to the recording and the child agrees. Partial: only one has agreed.
       Covered: both have agreed. If the parent or the child refuses, raise a flag on this topic saying
@@ -34,6 +48,9 @@ checklist:
     demo: {speakers: [parent, child], keywords: [consent, 'you may use']}
   - id: child_age_grade
     label: Child's age and grade
+    criteria:
+      - "The child's age is stated (for a child below 2nd grade the parent's answer counts; from 2nd grade up the child must say it)"
+      - "The child's current school grade is stated, or that the child is not in school"
     definition: >
       Required: the child's age and current school grade (or that the child is not in school).
       For a child below 2nd grade the parent's answer counts. For a child in 2nd grade or above the
@@ -43,6 +60,9 @@ checklist:
     demo: {speakers: [child, parent], keywords: [grade, 'years old']}
   - id: parent_account
     label: Parent's account of injury
+    criteria:
+      - "What happened, in the parent's own words"
+      - "Where it happened"
     definition: >
       Required, in the parent's own words: what happened and where. When it happened is not required,
       but if it is missing, follow-up is suggested. Whether the parent saw it or was told is useful,
@@ -54,6 +74,10 @@ checklist:
     demo: {speakers: [parent], keywords: [fell, tripped, bruise]}
   - id: child_account
     label: Child's account of injury
+    criteria:
+      - "What happened, in the child's own words"
+      - "Where it happened"
+      - "Who was there"
     definition: >
       Required, in the child's own words: what happened, where, and who was there. When it happened is
       not required, but if it is missing, follow-up is suggested. If the child says they do not know or
@@ -64,6 +88,9 @@ checklist:
     demo: {speakers: [child], keywords: [happened, 'hit me', fell]}
   - id: household_members
     label: Household members
+    criteria:
+      - "Everyone who lives in the home is named (the parent and child in the interview count as named)"
+      - "Each person's relationship to the child is stated"
     definition: >
       Required: everyone who lives in the home, named, with their relationship to the child. The parent
       and the child in the interview count as named by taking part. No confirmation that the list is
@@ -74,6 +101,9 @@ checklist:
     demo: {speakers: [parent, child], keywords: ['lives here', 'live with']}
   - id: caregivers
     label: Caregivers while parent works
+    criteria:
+      - "Who cares for the child while the parent works is named"
+      - "That person's relationship to the child is stated"
     definition: >
       Required: who cares for the child while the parent works (a name) and their relationship to the
       child. How often or when they provide care is not required, nor whether anyone else does.
@@ -84,6 +114,9 @@ checklist:
     demo: {speakers: [parent, child], keywords: ['here most days', 'watches her', babysit]}
   - id: child_safety_feelings
     label: Child's feelings of safety
+    criteria:
+      - "Whether the child feels safe at home, in the child's own words"
+      - "A reason, or a time when the child does not feel safe, given by the child (describing a person, such as 'he is sometimes mean', is too vague to count)"
     definition: >
       Required, in the child's own words: whether they feel safe at home, and why, or when they do not.
       Partial: "I feel safe" with no reason. Follow-up required: the child says they feel unsafe,
@@ -97,6 +130,9 @@ checklist:
     demo: {speakers: [child], keywords: [afraid, scares, safe], required_words: [afraid, scares, scared]}
   - id: medical_attention
     label: Medical attention for injury
+    criteria:
+      - "Whether the child was seen by a doctor, nurse or clinic ('no medical attention was sought' is a complete answer)"
+      - "If yes, where and when"
     definition: >
       Required: whether the child was seen by a doctor, nurse or clinic; if yes, where and when.
       "No medical attention was sought" is a complete answer (covered). If no care was sought and no
@@ -107,6 +143,9 @@ checklist:
     demo: {speakers: [parent], keywords: [doctor, nurse, 'just a bruise']}
   - id: prior_injuries
     label: Prior or other injuries
+    criteria:
+      - "The worker asked about earlier injuries or concerns, and both the parent and the child answered"
+      - "The worker asked about any other injuries or marks the child has now, and both the parent and the child answered"
     definition: >
       Required: the worker asked about (a) earlier injuries or concerns and (b) any other injuries or
       marks the child has now, and both the parent and the child answered. Partial: only one of them
@@ -116,6 +155,8 @@ checklist:
     demo: {speakers: [parent, child], keywords: [before, 'last time']}
   - id: other_contacts
     label: Other people to contact
+    criteria:
+      - "At least one person outside the home, specific enough to reach: a name plus a role or place (for example a teacher at a named school)"
     definition: >
       Required: at least one person outside the home, specific enough to reach: a name plus a role or
       place (for example "Ms Lopez, her teacher at Oak Elementary"). One contact is enough.
@@ -125,6 +166,9 @@ checklist:
     demo: {speakers: [parent, child], keywords: [teacher, counselor]}
   - id: safety_plan
     label: Safety plan and next steps
+    criteria:
+      - "The worker explains what happens next and any safety plan (if no plan is needed, explaining next steps is enough)"
+      - "The family acknowledges it"
     definition: >
       Required: the worker explains what happens next, and any safety plan, and the family acknowledges.
       If no safety plan is needed, explaining next steps is enough. The worker's own words count here.

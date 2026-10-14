@@ -57,7 +57,7 @@ def test_app_starts_with_env_example_only():
     settings = load_settings(env_file=ROOT / ".env.example", environ={})
     client = TestClient(create_app(settings))
     body = client.get("/health").json()
-    assert body["ok"] and body["pack"] == "cps_interview_v2@0.5.1"  # default pack since 2026-10-08
+    assert body["ok"] and body["pack"] == "cps_interview_v2@0.6.0"  # default pack since 2026-10-08
     assert not any(body["keys_present"].values())
 
 

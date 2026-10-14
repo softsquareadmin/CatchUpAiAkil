@@ -426,6 +426,9 @@ def test_pack_text_does_not_overlap_test_fixtures():
     offenders = []
     for pf in [*(ROOT / "packs").glob("*.yaml"), TINY_FILE]:
         p = load_pack(pf)
+        for text in [p.purpose, *p.pay_attention_to]:  # pack-level text too (SPEC-config-alignment-3)
+            if hits := _ngrams(text) & fixture_grams:
+                offenders.append((pf.name, "pack", " ".join(sorted(hits)[0])))
         for c in p.checklist:
             for text in [c.definition, c.follow_up_when, *c.criteria, *c.examples]:
                 if hits := _ngrams(text) & fixture_grams:
