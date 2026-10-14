@@ -25,7 +25,7 @@ from app import review_actions
 from app.review import (EmptyCaseContext, build_items, build_topic_results, checklist_summary, lost_sections, retry_note,
                         section_titles, topic_coverage)
 from app.models import (ChecklistItem, Cue, Flag, GateResult, ReviewItem, Speaker, TopicState, TopicUpdate,
-                        UseCasePack, Utterance, VoiceRole)
+                        UseCasePack, Utterance, VoiceRole, LineSpeaker)
 from app.store import EventLog, TranscriptStore
 
 log = logging.getLogger(__name__)
@@ -132,6 +132,9 @@ class Session:
         self.speaker_map: dict[str, Speaker] = {}  # AssemblyAI label (A, B, ...) -> role id, set by the user or guessed
         self.inferred: dict[str, Speaker] = {}  # labels whose role the gate guessed from the words; the user's choice wins
         self.inferred_lines: dict[str, str] = {}  # line id -> label, lines a guess relabelled (a user change follows them)
+        self.voice_votes: dict[str, dict[str, set[str]]] = {}  # label -> role -> lines the gate cited for it
+        self.guessed_lines: set[str] = set()  # lines whose speaker the gate changed from the words (line_speakers)
+        self.hand_set_lines: set[str] = set()  # lines whose speaker the user set by hand: never guessed over
         self.labels_seen: list[str] = []
         self.manual_speaker: Speaker | None = None  # user's toggle; overrides labels while set
         self.audio_file = None
@@ -183,7 +186,7 @@ class Session:
                 "cues": [{"cue": c.model_dump(), "level": self.board.level.get(c.id, "")} for c in self.board.cues.values()
                          if c.state == "active" and (c.kind == "flag" or self.board.active.get(c.topic_id) == c.id)],
                 "notes": self.notes, "stopped": self.stopped, "mic": self.mic_status(),
-                "consent_recorded": self.consent_recorded,
+                "consent_recorded": self.consent_recorded, "guessed_lines": sorted(self.guessed_lines),
                 "review": self.review_message(), "experiment": self.experiment_status(), "audio_file": self.file_info,
                 "health": self.health_snapshot()}
 
@@ -339,8 +342,11 @@ class Session:
             ms = lambda: int((time.monotonic() - t0) * 1000)  # noqa: E731
             # the flags already shown, so the gate can mark a repeat instead of raising it again
             extra = {"flags_raised": self.board.flags_raised()} if getattr(self.decider, "takes_flags", False) else {}
-            if getattr(self.decider, "takes_voices", False) and (voices := self.unidentified_voices(window)):
-                extra["voices"] = voices  # the gate may say whose voice it is from the words
+            if getattr(self.decider, "takes_voices", False):
+                if voices := self.unidentified_voices(window):
+                    extra["voices"] = voices  # the gate may say whose voice it is from the words
+                if check := self.lines_to_check(window):
+                    extra["check_lines"] = check  # ... and whether a short line's speaker is wrong
             try:
                 if getattr(self.decider, "staged", False):
                     async def on_partial(fast: GateResult) -> None:
@@ -388,6 +394,8 @@ class Session:
             await self.on_flag(f)
         for vr in result.voice_roles:
             await self.apply_voice_role(vr)
+        for ls in result.line_speakers:
+            await self.apply_line_speaker(ls)
         if result.answer_quality:
             self.events.write("answer_quality", **result.answer_quality.model_dump())
         await self.send({"type": "gate_status", "gate": self.gate_status(
@@ -834,6 +842,32 @@ class Session:
                 out[u.id] = label
         return out
 
+    def lines_to_check(self, window: list[Utterance]) -> list[str]:
+        """Short lines whose speaker came from a voice label (not set by the user, not guessed already)."""
+        if not self.settings.gate_line_speakers:
+            return []
+        return [u.id for u in window if u.id in self.line_labels and u.speaker != "unknown"
+                and u.id not in self.hand_set_lines and u.id not in self.guessed_lines
+                and len(u.text.split()) <= self.settings.line_speaker_max_words]
+
+    async def apply_line_speaker(self, ls: LineSpeaker) -> None:
+        """The gate says a short line's speaker is wrong from the words. Applied as a guess on that one line (shown as
+        one, logged); never over a line the user set, and at most once per line."""
+        i = next((i for i, u in enumerate(self.store.utterances) if u.id == ls.utterance_id), None)
+        if (self.stopped or i is None or ls.role not in self.pack.role_ids or ls.utterance_id in self.hand_set_lines
+                or ls.utterance_id in self.guessed_lines or not self.settings.gate_line_speakers
+                or self.store.utterances[i].speaker == ls.role
+                or len(self.store.utterances[i].text.split()) > self.settings.line_speaker_max_words):
+            self.events.write("line_speaker_ignored", **ls.model_dump())
+            return
+        old = self.store.utterances[i]
+        self.store.utterances[i] = u = old.model_copy(update={"speaker": ls.role})
+        self.guessed_lines.add(u.id)
+        self.inferred_lines.pop(u.id, None)  # no longer follows its voice's mapping
+        self.events.write("speaker_corrected", utterance_id=u.id, old=old.speaker, new=ls.role, by="guess_line")
+        self.audit.write("system", "line_speaker_inferred", utterance_id=u.id, old=old.speaker, new=ls.role)
+        await self.send({"type": "utterance_update", "utterance": u.model_dump(), "guess": True})
+
     async def apply_voice_role(self, vr: VoiceRole) -> None:
         """The gate's guess at a voice's role. Only for a voice nobody has mapped, from a line with that voice; shown as a
         guess until the user confirms or changes it (set_speaker)."""
@@ -841,6 +875,17 @@ class Session:
         if (self.stopped or vr.voice in self.speaker_map or vr.role not in self.pack.role_ids
                 or self.line_labels.get(vr.utterance_id) != (vr.voice, conn)):
             self.events.write("voice_role_ignored", **vr.model_dump())
+            return
+        # guards (2026-10-14: one mislabelled line made a whole voice the wrong person): enough agreeing lines, and
+        # no role given to two voices
+        votes = self.voice_votes.setdefault(vr.voice, {})
+        votes.setdefault(vr.role, set()).add(vr.utterance_id)  # the gate cites the voice's newest line: lines add up
+        mine, best_other = len(votes[vr.role]), max((len(v) for r, v in votes.items() if r != vr.role), default=0)
+        if mine < self.settings.voice_guess_min_lines or mine <= best_other:
+            self.events.write("voice_role_vote", **vr.model_dump(), votes={r: sorted(v) for r, v in votes.items()})
+            return
+        if self.settings.voice_guess_one_per_role and any(r == vr.role for lb, r in self.speaker_map.items() if lb != vr.voice):
+            self.events.write("voice_role_conflict", **vr.model_dump())
             return
         self.speaker_map[vr.voice] = self.inferred[vr.voice] = vr.role
         self.audit.write("system", "speaker_inferred", label=vr.voice, speaker=vr.role, utterance_id=vr.utterance_id)
@@ -1033,7 +1078,14 @@ class Session:
         if i is None:
             return "unknown line"
         old = self.store.utterances[i]
+        self.hand_set_lines.add(utterance_id)
+        self.inferred_lines.pop(utterance_id, None)
+        was_guess = utterance_id in self.guessed_lines
+        self.guessed_lines.discard(utterance_id)
         if old.speaker == speaker:
+            if was_guess:  # confirming a guessed line
+                self.audit.write("user", "line_speaker_confirmed", utterance_id=utterance_id, speaker=speaker)
+                await self.send({"type": "utterance_update", "utterance": old.model_dump(), "guess": False})
             return None
         self.store.utterances[i] = u = old.model_copy(update={"speaker": speaker})
         self.events.write("speaker_corrected", utterance_id=u.id, old=old.speaker, new=speaker, by="user")

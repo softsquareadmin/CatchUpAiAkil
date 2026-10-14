@@ -24,6 +24,8 @@ source are marked *unconfirmed*.
 
 - **The clock** now stops at End interview (owner, 2026-10-14), also after a reload.
 
+- **Speaker guessing guards and short-line guesses** (2026-10-14): built and kept. All voice guesses were right on 5 real-audio runs and replays, including the transcript where a mislabelled line once made a whole voice wrong. Short-line guesses were 14 of 16 right. Details in PROGRESS.md.
+
 ## 1. Last 12 lines vs the full conversation
 
 **Today:** the gate sees the last 12 lines, each topic's status and follow-up level, the checklist, and the flags already raised. It never sees earlier quotes. The review at the end reads the whole transcript.

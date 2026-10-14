@@ -42,10 +42,10 @@ class HybridDecider:
 
     async def evaluate(self, window: list[Utterance], checklist_state: dict[str, TopicState],
                        on_partial: OnPartial | None = None, flags_raised: list[dict] = (),
-                       voices: dict[str, str] | None = None) -> GateResult:
+                       voices: dict[str, str] | None = None, check_lines: list[str] = ()) -> GateResult:
         self.last_error, self.last_fast = None, []
         llm_task = asyncio.create_task(self.llm.evaluate(window, checklist_state, flags_raised=flags_raised,
-                                                         voices=voices))
+                                                         voices=voices, check_lines=check_lines))
         try:
             answers = await self.jev.ask(window, checklist_state)
         except BaseException:
@@ -59,5 +59,5 @@ class HybridDecider:
         self.last_error = self.llm.last_error or self.jev.last_error
         if on_partial is None:  # single result: the LLM's updates come last so they win
             slow = GateResult(updates=fast.updates + slow.updates, flags=slow.flags, answer_quality=slow.answer_quality,
-                              voice_roles=slow.voice_roles)
+                              voice_roles=slow.voice_roles, line_speakers=slow.line_speakers)
         return slow

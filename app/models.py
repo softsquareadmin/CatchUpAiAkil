@@ -95,7 +95,14 @@ class VoiceRole(BaseModel):
     """The gate's guess at an unidentified voice's role, from what was said (a speech-to-text voice label, e.g. "B")."""
     voice: str
     role: str
-    utterance_id: str  # the line that shows it
+    utterance_id: str  # the newest line of that voice that shows it (votes from different lines add up)
+
+
+class LineSpeaker(BaseModel):
+    """The gate's guess that a short line's shown speaker cannot be right given the words (e.g. an answer to a question
+    asked to someone else that came back under the asker's voice)."""
+    utterance_id: str
+    role: str
 
 
 class GateResult(BaseModel):
@@ -103,6 +110,7 @@ class GateResult(BaseModel):
     flags: list[Flag] = []
     answer_quality: AnswerQuality | None = None
     voice_roles: list[VoiceRole] = []
+    line_speakers: list[LineSpeaker] = []
 
 
 class Cue(BaseModel):

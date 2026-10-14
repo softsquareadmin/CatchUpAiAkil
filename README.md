@@ -97,7 +97,7 @@ On a tablet the screen uses the same three columns in landscape, and two in port
 
 In Mic and Audio file mode, AssemblyAI labels voices **Voice A, B, C** in the order it hears them. Map each voice to a role (for example Voice A → Worker) in the panel under the transcript. New lines use the mapping, and earlier lines from that voice that still say Unknown take it too (the change is logged; lines that already have a role keep it).
 
-You often do not need to: the live checklist model also works out a voice's role from what is said (for example the voice asking the interview's questions), maps it and marks it **Guess ✓** in the panel. Tap **Guess ✓** to confirm, or pick another role: your choice always wins, and the lines the guess labelled follow it. A guess is only made for a voice nobody has mapped, and every guess is logged. When you end the interview, the **Before you leave** dialog lists any voice that is still a guess or has no speaker, with a sample line, so you can confirm it before the review reads who said what.
+You often do not need to: the live checklist model also works out a voice's role from what is said (for example the voice asking the interview's questions), maps it and marks it **Guess ✓** in the panel. Tap **Guess ✓** to confirm, or pick another role: your choice always wins, and the lines the guess labelled follow it. A guess is only made for a voice nobody has mapped, needs at least two of that voice's lines to agree, never gives one role to two voices, and is logged. Short lines whose voice label the words contradict (a quick reply that came back under the questioner's voice, such as "When he yells.") are also corrected as guesses, shown with a **?** after the name (for example **Child?**); tap the name to confirm or change it. When you end the interview, the **Before you leave** dialog lists any voice that is still a guess or has no speaker, with a sample line, so you can confirm it before the review reads who said what.
 
 When the labels are wrong (they can be, especially with similar voices or short answers):
 - tap the **speaker name** on a line to correct that one line (a short answer straight after a question often gets the questioner's label); the change is logged, and the review uses it;
@@ -249,6 +249,9 @@ Any setting can be overridden for one run with an environment variable (upper ca
 | `hybrid_min_confidence` | `0.9` | Hybrid: confidence needed for the early mark |
 | `gate_prompt` | `full` | `full` or `short` (shorter prompt; no latency gain measured) |
 | `gate_temperature` | `null` | `null` = provider default (Google recommends 1.0 for Gemini 3) |
+| `voice_guess_min_lines` | `2` | Lines of a voice that must agree before its role is guessed |
+| `voice_guess_one_per_role` | `true` | Never guess the same role for two voices |
+| `gate_line_speakers`, `line_speaker_max_words` | `true`, `8` | The gate may correct a short line's speaker from the words (shown as a guess) |
 | `gate_skip_user_lines` | `false` | Experiment: no gate call on the user's own line; it is read with the next answer (13 instead of 23 calls on the CPS script, same accuracy; needs the user's voice identified) |
 | `gate_prompt_cache` | `true` | Mark the gate's unchanging prompt part (rules + checklist) for prompt caching (about 57% cheaper per call, measured 2026-10-14) |
 | `openrouter_provider_order` | Gemini → `google-ai-studio` | Per model, the OpenRouter providers to try first. A prompt cache lives at one provider, so Gemini is kept on one (docs/provider-notes.md) |

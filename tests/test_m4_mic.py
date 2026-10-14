@@ -458,9 +458,10 @@ def test_user_corrects_one_lines_speaker(tmp_path):
 
 # ---- roles guessed from the words (2026-10-14): the user's choice always wins ----
 
-def voiced_session(tmp_path, lines):
-    """A session whose lines carry voice labels on connection 1, all speaker unknown."""
-    s, sent = session(tmp_path)
+def voiced_session(tmp_path, lines, **env):
+    """A session whose lines carry voice labels on connection 1, all speaker unknown. One line is enough for a guess
+    here (these tests are about applying guesses; the 2-line guard has its own tests)."""
+    s, sent = session(tmp_path, **{"VOICE_GUESS_MIN_LINES": "1", **env})
 
     class Source:
         connections, last_label, last_label_confidence, last_part, last_words = 1, None, None, None, []
@@ -551,7 +552,7 @@ def test_the_session_passes_unidentified_voices_to_a_gate_that_takes_them(tmp_pa
     class Gate:
         takes_voices, last_error = True, None
 
-        async def evaluate(self, window, checklist_state, voices=None):
+        async def evaluate(self, window, checklist_state, voices=None, check_lines=()):
             seen.append(dict(voices or {}))
             return GateResult(voice_roles=[VoiceRole(voice="A", role="worker", utterance_id=window[-1].id)])
     s.decider = Gate()
@@ -620,3 +621,69 @@ def test_turn_silence_settings_go_on_the_connection_only_when_set():
                               turn_silence_ms=(160, 400))
     q = parse_qs(urlparse(t.url()).query)
     assert q["min_turn_silence"] == ["160"] and q["max_turn_silence"] == ["400"]
+
+
+# ---- guards on voice guesses, and short-line speaker guesses (2026-10-14) ----
+
+def test_a_voice_guess_needs_two_agreeing_lines_and_the_majority(tmp_path):
+    from app.models import VoiceRole
+    s, _ = voiced_session(tmp_path, ["B", "B", "B", "B"], VOICE_GUESS_MIN_LINES="2")
+
+    async def go():
+        await s.apply_voice_role(VoiceRole(voice="B", role="child", utterance_id="u0001"))   # one mislabelled line
+        await s.apply_voice_role(VoiceRole(voice="B", role="child", utterance_id="u0001"))   # same line again
+        assert "B" not in s.speaker_map
+        await s.apply_voice_role(VoiceRole(voice="B", role="parent", utterance_id="u0002"))
+        assert "B" not in s.speaker_map                                                       # 1 vs 1
+        await s.apply_voice_role(VoiceRole(voice="B", role="parent", utterance_id="u0003"))
+    asyncio.run(go())
+    assert s.speaker_map == {"B": "parent"} and s.inferred == {"B": "parent"}
+    assert '"voice_role_vote"' in (tmp_path / s.id / "events.jsonl").read_text()
+
+
+def test_a_role_is_never_guessed_for_a_second_voice(tmp_path):
+    from app.models import VoiceRole
+    s, _ = voiced_session(tmp_path, ["A", "B"])
+
+    async def go():
+        await s.set_speaker("A", "child")
+        await s.apply_voice_role(VoiceRole(voice="B", role="child", utterance_id="u0002"))
+    asyncio.run(go())
+    assert s.speaker_map == {"A": "child"} and s.store.utterances[1].speaker == "unknown"
+    assert '"voice_role_conflict"' in (tmp_path / s.id / "events.jsonl").read_text()
+
+
+def test_short_lines_are_offered_for_a_speaker_check_and_a_guess_is_shown_as_one(tmp_path):
+    from app.models import LineSpeaker
+    s, sent = voiced_session(tmp_path, ["A", "A", "A"])
+
+    async def go():
+        await s.set_speaker("A", "worker")
+        s.store.utterances[0] = s.store.utterances[0].model_copy(update={"text": "Jill, can you tell me about a time you felt scared at home?"})
+        s.store.utterances[1] = s.store.utterances[1].model_copy(update={"text": "When he yells."})
+        assert s.lines_to_check(s.store.utterances) == ["u0002", "u0003"]  # short lines only
+        await s.apply_line_speaker(LineSpeaker(utterance_id="u0002", role="child"))
+        await s.apply_line_speaker(LineSpeaker(utterance_id="u0002", role="parent"))  # at most one guess per line
+        await s.set_line_speaker("u0003", "worker")                                   # set by hand: never guessed over
+        await s.apply_line_speaker(LineSpeaker(utterance_id="u0003", role="parent"))
+        assert s.lines_to_check(s.store.utterances) == []
+        assert s.hello()["guessed_lines"] == ["u0002"]
+        await s.set_line_speaker("u0002", "child")  # the user confirms the guess
+    asyncio.run(go())
+    assert [u.speaker for u in s.store.utterances] == ["worker", "child", "worker"]
+    assert s.guessed_lines == set()
+    updates = [m for m in sent if m["type"] == "utterance_update" and "guess" in m]
+    assert [(m["utterance"]["id"], m["guess"]) for m in updates] == [("u0002", True), ("u0002", False)]
+    assert '"line_speaker_inferred"' in (tmp_path / s.id / "audit.jsonl").read_text()
+
+
+def test_gate_schema_asks_about_short_lines_only_when_there_are_some(tmp_path):
+    from app.adapters.deciders.llm import LLMDecider, gate_schema, text_of
+    s = gate_schema(["t"], ["u0001", "u0002"], role_ids=PACK.role_ids, check_lines=["u0002"])
+    assert s["properties"]["line_speakers"]["items"]["properties"]["utterance_id"]["enum"] == ["u0002"]
+    assert "line_speakers" not in gate_schema(["t"], ["u0001"])["properties"]
+    d = LLMDecider(PACK, None, "openrouter", "m", Ledger(tmp_path, "s", "e", 1.0))
+    w = [Utterance(id="u0001", session_id="s", t_start_ms=0, t_end_ms=1, speaker="worker", text="When he yells.",
+                   is_final=True, source="mic")]
+    assert "<check_lines>\nu0001\n</check_lines>" in text_of(d.messages(w, {}, check_lines=["u0001"])[1])
+

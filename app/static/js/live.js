@@ -62,6 +62,7 @@ function onMessage(msg) {
       state.sessionStart = state.begun ? Date.now() - (msg.elapsed_ms || 0) : null;
       state.stoppedAt = msg.stopped ? Date.now() : null;  // a stopped interview's clock stays where it stopped
       state.consentRecorded = msg.consent_recorded || null;
+      state.guessedLines = new Set(msg.guessed_lines || []);
       tick();
       state.sessionId = msg.session_id;
       storeSession(msg.session_id);
@@ -101,6 +102,8 @@ function onMessage(msg) {
       break;
     case "utterance": addUtterance(msg.utterance); setStarted(true); break;
     case "utterance_update": {  // a voice was mapped after its lines were spoken: they now show the role
+      if (msg.guess === true) state.guessedLines.add(msg.utterance.id);
+      if (msg.guess === false) state.guessedLines.delete(msg.utterance.id);
       const old = document.querySelector(`#transcript li[data-id="${msg.utterance.id}"]`);
       if (old) old.replaceWith(row(msg.utterance));
       break;
@@ -155,9 +158,12 @@ function row(u) {
   const idx = state.pack.roles.findIndex((r) => r.id === u.speaker);
   const cls = `who k-${idx < 0 ? "unknown" : state.pack.roles[idx].kind} r${idx}`;
   // a finished line's speaker can be corrected: tap the name, pick the role (labels can be wrong on short answers)
+  const guessed = (state.guessedLines || new Set()).has(u.id);  // the gate changed this short line's speaker
   const who = u.is_final
-    ? el("button", { type: "button", className: `${cls} who-btn`, title: "Change who said this",
-      "aria-label": `${roleLabel(u.speaker)}. Change who said this line` }, roleLabel(u.speaker))
+    ? el("button", { type: "button", className: `${cls} who-btn`,
+      title: guessed ? "Guessed from the words (the voice label said otherwise). Tap to confirm or change." : "Change who said this",
+      "aria-label": `${roleLabel(u.speaker)}${guessed ? " (guessed)" : ""}. Change who said this line` },
+      roleLabel(u.speaker) + (guessed ? "?" : ""))
     : el("span", { className: cls }, roleLabel(u.speaker));
   const li = el("li", { className: u.is_final ? "final" : "partial", dataset: { id: u.id } }, who,
     el("span", { className: "text" }, u.text));
@@ -170,12 +176,19 @@ function row(u) {
 
 function pickSpeaker(button, u) {
   const sel = el("select", { className: "who-pick", "aria-label": "Who said this line" });
-  for (const r of [...state.pack.roles, { id: "unknown", label: "Unknown" }]) sel.add(new Option(r.label, r.id, false, r.id === u.speaker));
+  const guessed = (state.guessedLines || new Set()).has(u.id);
+  if (guessed) {  // a placeholder first, so picking "Confirm" (or the same role) is a change
+    sel.add(new Option("Guessed. Who said this?", "", false, true));
+    sel.options[0].disabled = true;
+    sel.add(new Option(`✓ Confirm: ${roleLabel(u.speaker)}`, "__confirm"));
+  }
+  for (const r of [...state.pack.roles, { id: "unknown", label: "Unknown" }]) sel.add(new Option(r.label, r.id, false, !guessed && r.id === u.speaker));
   let done = false;
   const finish = (speaker) => {
     if (done) return;
     done = true;
-    if (speaker && speaker !== u.speaker) send({ type: "line_speaker", id: u.id, speaker });  // the server sends the new row
+    if (speaker === "__confirm") send({ type: "line_speaker", id: u.id, speaker: u.speaker });  // a guess, confirmed
+    else if (speaker && (speaker !== u.speaker || guessed)) send({ type: "line_speaker", id: u.id, speaker });  // the server sends the new row
     else sel.replaceWith(button);
   };
   sel.addEventListener("click", (e) => e.stopPropagation());

@@ -28,6 +28,10 @@ class Settings(BaseModel):
     hybrid_min_confidence: float = 0.9
     gate_prompt: Literal["full", "short"] = "full"
     gate_temperature: float | None = None  # None = provider default (Google recommends 1.0 for Gemini 3)
+    voice_guess_min_lines: int = 2  # a voice's role is guessed only after this many of its lines agree (2026-10-14)
+    voice_guess_one_per_role: bool = True  # never guess the same role for two voices
+    gate_line_speakers: bool = True  # the gate may say a short line's speaker is wrong (a guess, shown as one)
+    line_speaker_max_words: int = 8  # "short" for the above
     gate_skip_user_lines: bool = False  # experiment: no gate call on the user's own line; read with the next answer
     gate_prompt_cache: bool = True  # mark the gate's unchanging prompt part (rules + checklist) for prompt caching
     openrouter_provider_order: dict[str, list[str]] = {}  # model id -> provider slugs to try first (prompt caching)
