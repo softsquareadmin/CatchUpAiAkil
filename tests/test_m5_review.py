@@ -116,7 +116,7 @@ def test_export_contains_only_accepted_and_edited():
     assert {(f["field_id"], f["value"], f["status"]) for f in note["form_fields"]} == {
         ("child_age", "7", "accepted"), ("child_grade", "2nd grade", "edited")}
     assert [r["label"] for r in note["sections"]["timeline"]] == ["Tuesday night · parent"]
-    assert "summary" not in note["sections"] and note["not_included"]["rejected"] == 1
+    assert "summary" not in note["sections"] and note["not_included"]["rejected"] == 0  # form items are not counted
     page = render_html(note)
     assert "Tuesday night" not in page  # a timeline with fewer than 2 dated events is not shown (the JSON keeps it)
     assert "2nd grade" not in page and "Form fields" not in page  # the HTML report no longer shows form fields

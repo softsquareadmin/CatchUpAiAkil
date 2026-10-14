@@ -92,7 +92,8 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
                  "evidence": quotes(i["evidence"]), "basis_topics": i.get("basis_topics") or [],
                  "source": i.get("source"), "topic_id": i.get("topic_id"),
                  **({"field_id": i["field_id"]} if i.get("field_id") else {})}
-                for i in draft["items"] if i["section"] == sec and keep(i["status"])]
+                for i in draft["items"] if i["section"] == sec and (sec == "form" or keep(i["status"]))]
+        rows = [i for i in rows if sec != "form" or i["status"] in show]  # form: JSON only, not in the counts
         if sec == OVERALL:
             overall = {"title": title, "label": "Draft for human review", "items": rows} if rows else None
         elif rows and sec != "form":
@@ -264,7 +265,8 @@ def render_html(r: dict) -> str:
                               "speaker_note": False}
     secs = {s["id"]: s for s in r["custom_and_other_sections"]}
     topics = {t["topic_id"]: t for t in r["topics"]}
-    lead = [sid for sid in lay["lead"] if sid in secs or (sid == lay["flags_into"] and r["flags"])]
+    lead = [sid for sid in lay["lead"] if (sid in secs or (sid == lay["flags_into"] and r["flags"]))
+            and sid not in ("accounts", "missing_accounts")]  # those are always the accounts table
 
     def cls(*names: str) -> str:
         names = [n for n in names if n]
@@ -389,7 +391,7 @@ def render_html(r: dict) -> str:
         jumps = [(f"sec-{sid}", secs[sid]["title"] if sid in secs else sid) for sid in lead[:1]]
         jumps.append(("topics", "Topics"))
         if accounts or missing:
-            jumps.append(("sec-accounts", "Accounts"))
+            jumps.append(("sec-accounts" if accounts else "sec-missing_accounts", "Accounts"))
         if "next_steps" in secs:
             jumps.append(("sec-next_steps", "Next steps"))
         if anchors:
@@ -491,7 +493,7 @@ def render_html(r: dict) -> str:
             for i in its:
                 b = i["basis_topics"]
                 t = topics.get(b[0]["id"]) if len(b) == 1 else None
-                if (t and t["follow_up"] and t.get("follow_up_level") != "required" and i["status"] != "edited"
+                if (t and t["follow_up"] and t.get("follow_up_level") != "required" and i["status"] == "proposed"
                         and {q["utterance_id"] for q in i["evidence"]} <= {q["utterance_id"] for q in t["evidence"]}):
                     see.append(t)
                 else:

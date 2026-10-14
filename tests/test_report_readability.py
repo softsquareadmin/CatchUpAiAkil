@@ -189,3 +189,34 @@ def test_print_and_expand_cover_every_section():
     r, page = report()
     assert "details::details-content{content-visibility:visible;display:block}" in page
     assert "querySelectorAll('details')" in page and "beforeprint" in page
+
+
+
+def test_an_accepted_option_is_never_turned_into_a_link():
+    import copy
+    r, _ = report()
+    r = copy.deepcopy(r)
+    step = next(i for s in r["custom_and_other_sections"] if s["id"] == "next_steps" for i in s["items"]
+                if i["id"] == "next_steps.1")
+    step["status"] = "accepted"
+    assert "Consider asking about other marks." in render_html(r)
+
+
+def test_the_accounts_link_and_section_without_account_items_or_with_accounts_as_a_lead():
+    import copy
+    r, _ = report()
+    no_accounts = copy.deepcopy(r)
+    no_accounts["custom_and_other_sections"] = [s for s in r["custom_and_other_sections"] if s["id"] != "accounts"]
+    page = render_html(no_accounts)
+    assert 'href="#sec-missing_accounts"' in page and 'id="sec-missing_accounts"' in page
+    lead = copy.deepcopy(r)
+    lead["layout"]["lead"] = ["accounts", *r["layout"]["lead"]]
+    assert render_html(lead).count('id="sec-accounts"') == 1  # always the table, once
+
+
+def test_form_items_of_an_old_draft_are_not_counted_as_hidden():
+    draft = {"topics": [], "items": [it("form.1", "form", "Child age", "7", ev(3, "afraid"), field_id="child_age")],
+             "sections": [{"id": "form", "title": "Form fields"}], "checklist": {}}
+    r = build_report({"session_id": "x", "draft": draft, "utterances": LINES, "audit": [], "events": [], "ledger": []}, CPS)
+    assert r["not_included"] == {"rejected": 0, "not_reviewed": 0} and r["form_fields"] == []
+    assert r["reviewed_count"] == {"reviewed": 0, "total": 0}

@@ -391,6 +391,7 @@ Findings:
     - JS off: the default sections open and the Expand button hidden.
     - No sideways scroll at 390 px (it had 21 px before: `.who` text never wrapped, now fixed).
   - Note: an old session's header shows the current pack ref (@0.5.1), as before this change.
+  - Review follow-ups: only *proposed* next steps are trimmed (accepted or edited ones stay); form items of old drafts are left out of the hidden-item counts; the Accounts jump link points to the unheard-people section when there are no account items; `accounts` / `missing_accounts` named as lead sections still render once, as the table. The new `check()` rule cannot block a Configuration save (that page does not edit custom sections). 383 tests pass.
   - 380 tests pass (10 new in `tests/test_report_readability.py`).
 
 ## Pack change log (SPEC-M7 evaluation rule 4)
