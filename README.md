@@ -34,7 +34,7 @@ A second listener for structured interviews. It transcribes the conversation, tr
 
 ## Pages
 
-Every page has the same header (the Softsquare logo and **Interview**, **Sessions**, **Configuration**, **Costs**) and a "Built by Softsquare" footer. The colours follow Softsquare's logo: charcoal for buttons, links and the current page, and red only for things that need attention (required follow-ups, rejected items, recording, errors). Light or dark theme follows your system setting.
+Every page has the same header (the Softsquare logo and **Interview**, **Sessions**, **Configuration**, **Costs**) and a "Built by Softsquare" footer. Buttons, links and the current page are blue; the logo's red is used for the strip above the header and otherwise only for things that need attention (required follow-ups, rejected items, recording, errors). Light or dark theme follows your system setting.
 
 | Page | URL | What it is for |
 |---|---|---|

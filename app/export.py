@@ -206,10 +206,10 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
 # Layout (2026-10-14, report readability): every section is a native <details> (open or closed by default), so the
 # content stays in the page for find, works without JavaScript, and opens fully for printing.
 CSS = """
-:root{--bg:#fff;--fg:#1d1f23;--muted:#5c5f66;--line:#dfe0e3;--panel:#f7f7f8;--accent:#3f4349;--track:#ececee;
+:root{--bg:#fff;--fg:#15285a;--muted:#5d6f94;--line:#dde6f4;--panel:#f7f9fd;--accent:#087bff;--track:#eaf0f8;
 --cov:#08a353;--cov-bg:#dff9eb;--par:#a35f00;--par-bg:#fff0d7;--not:#c8102e;--not-bg:#ffe5eb;--mark:#7a4d00;--mark-bg:#fff1d6}
-@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#ececee;--muted:#a5a7ad;--line:#33353a;--panel:#1b1c1f;
---accent:#d7d8dc;--track:#33353a;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
+@media (prefers-color-scheme:dark){:root{--bg:#10151f;--fg:#e6ecf7;--muted:#9fb0cf;--line:#2c3850;--panel:#171e2b;
+--accent:#5aa6ff;--track:#2c3850;--cov:#5bd497;--cov-bg:#163626;--par:#f2b24c;--par-bg:#3a2a10;--not:#ff7a8c;
 --not-bg:#3d1720;--mark:#f2c879;--mark-bg:#3a2e14}}
 *{box-sizing:border-box}
 body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
