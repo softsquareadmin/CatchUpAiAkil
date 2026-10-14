@@ -367,6 +367,22 @@ Findings:
   - **Live audio** (`cps_script_custom.m4a`, sessions `20261014-021905-7127` default, `-022127-2fc1` 320/640, `-022349-dc08` 160/400, `-023556-875c` default with the final version): voice guesses right in every run (3 of 3 each). A voice is identified a line or two later than with one line; earlier lines are relabelled then. Checklist 10/11, 9/11, 11/11, 10/11 (the misses: consent folded into the worker's turn, or "When he yells" merged into the worker's question).
   - **Short-line guesses:** 14 of 16 right across the runs: "I consent." x2, "Dave was here.", "When he yells.", the worker's "Jill," and the child's "I'm 7" under the parent's voice. Both misses were "Please leave me." → child (the script has the parent; the words are ambiguous).
   - Kept all three on by default. One-per-role never fired in the final version; it was harmful only together with `also_lines`. 370 tests pass.
+- **Slow voice guesses** (owner, 2026-10-14: "auto assigning of voices takes much longer"). Cause: the 2-line guard counts distinct *cited* lines, but the gate keeps citing the voice's clearest line (the worker's self-introduction u0001 12 times in one run), so repeat votes don't count. Fix `voice_vote_by: newest` (now the default; `cited` kept as an option): a vote is keyed to the voice's newest line in that gate call's window, so each new line of the voice can add one vote, whichever line is cited. `guard_replay` (gate only, $0.16 for 6 replays), line at which each voice was guessed:
+
+  | session | mode | worker (A) | parent (B) | child (C) |
+  |---|---|---|---|---|
+  | `-020504-2758` (mislabelled "I'm 7") | cited | u0013 | u0012 | never |
+  | | newest | **u0002** | u0012 | never |
+  | `-023556-875c` | cited | u0014 | u0014 | u0017 |
+  | | newest | **u0002** | **u0011** | u0018 |
+  | `-022127-2fc1` | cited (live run) | u0002 | u0012 | u0025 |
+  | | newest | u0002 | u0012 | u0025 |
+  | `-022349-dc08` | cited (live run) | u0002 | u0014 | u0032 |
+  | | newest | u0002 | u0014 | u0032 |
+
+  - With `newest`, every voice is guessed on its 2nd or 3rd line, the soonest the 2-line guard allows. The worker voice is now always guessed on line 2 (with `cited`, 2 of 4 runs waited until about line 13).
+  - All guesses were right in both modes. The mislabel guard still held: B → parent despite the child's line under B.
+  - What remains slow is the guard itself. In this script the parent and child each say one line and then nothing for about 8–20 lines. In `-2758` the child has only 2 lines at the end (u0024, u0025) and the gate didn't vote on them, so the child voice was never guessed in either mode.
 
 - **Report readability** (SPEC-report-readability, 2026-10-14; rendering and pack config only, no model or guardrail change).
   - `app/export.py` render rewritten. Every section is a native `<details>`:

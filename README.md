@@ -251,6 +251,7 @@ Any setting can be overridden for one run with an environment variable (upper ca
 | `gate_prompt` | `full` | `full` or `short` (shorter prompt; no latency gain measured) |
 | `gate_temperature` | `null` | `null` = provider default (Google recommends 1.0 for Gemini 3) |
 | `voice_guess_min_lines` | `2` | Lines of a voice that must agree before its role is guessed |
+| `voice_vote_by` | `newest` | `newest`: each new line of a voice adds a vote; `cited`: only distinct lines the gate cites (slower: it keeps citing the clearest line) |
 | `voice_guess_one_per_role` | `true` | Never guess the same role for two voices |
 | `gate_line_speakers`, `line_speaker_max_words` | `true`, `8` | The gate may correct a short line's speaker from the words (shown as a guess) |
 | `gate_skip_user_lines` | `false` | Experiment: no gate call on the user's own line; it is read with the next answer (13 instead of 23 calls on the CPS script, same accuracy; needs the user's voice identified) |

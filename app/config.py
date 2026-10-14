@@ -29,6 +29,7 @@ class Settings(BaseModel):
     gate_prompt: Literal["full", "short"] = "full"
     gate_temperature: float | None = None  # None = provider default (Google recommends 1.0 for Gemini 3)
     voice_guess_min_lines: int = 2  # a voice's role is guessed only after this many of its lines agree (2026-10-14)
+    voice_vote_by: str = "newest"  # "newest": a vote per new line of the voice; "cited": per line the gate cites
     voice_guess_one_per_role: bool = True  # never guess the same role for two voices
     gate_line_speakers: bool = True  # the gate may say a short line's speaker is wrong (a guess, shown as one)
     line_speaker_max_words: int = 8  # "short" for the above

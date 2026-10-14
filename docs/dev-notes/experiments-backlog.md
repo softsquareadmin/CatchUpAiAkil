@@ -182,3 +182,4 @@ Changing this is a definition change. It needs:
 | 5 | Long script: window vs full transcript | ~$0.30 |
 | 6 | Realtime per-turn prototype vs AssemblyAI | estimate first, probably $1-3 |
 | 7 | Service Console layout | after the embed question |
+| 8 | Faster parent/child voice guesses: guess from a voice's first line, change it if later lines outvote it (with `newest` the worker is guessed on line 2; the others wait for their 2nd line, often 8-20 lines later). Owner, 2026-10-14: enough for now, test later | ~$0.16 |

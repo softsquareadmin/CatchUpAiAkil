@@ -641,6 +641,21 @@ def test_a_voice_guess_needs_two_agreeing_lines_and_the_majority(tmp_path):
     assert '"voice_role_vote"' in (tmp_path / s.id / "events.jsonl").read_text()
 
 
+def test_newest_vote_counts_a_new_line_of_the_voice_whichever_line_is_cited(tmp_path):
+    from app.models import VoiceRole
+    s, _ = voiced_session(tmp_path, ["A", "B", "A"], VOICE_VOTE_BY="newest", VOICE_GUESS_MIN_LINES="2")
+    u = s.store.utterances
+    vr = VoiceRole(voice="A", role="worker", utterance_id="u0001")  # the gate keeps citing the clearest line
+
+    async def go():
+        await s.apply_voice_role(vr, u[:2])   # newest A line in this window: u0001
+        await s.apply_voice_role(vr, u[:2])   # same window again: no new vote
+        assert "A" not in s.speaker_map
+        await s.apply_voice_role(vr, u[:3])   # A spoke again (u0003): second vote
+    asyncio.run(go())
+    assert s.speaker_map == {"A": "worker"}
+
+
 def test_a_role_is_never_guessed_for_a_second_voice(tmp_path):
     from app.models import VoiceRole
     s, _ = voiced_session(tmp_path, ["A", "B"])

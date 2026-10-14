@@ -393,7 +393,7 @@ class Session:
             self.events.write("flag", flag=f.model_dump())
             await self.on_flag(f)
         for vr in result.voice_roles:
-            await self.apply_voice_role(vr)
+            await self.apply_voice_role(vr, window)
         for ls in result.line_speakers:
             await self.apply_line_speaker(ls)
         if result.answer_quality:
@@ -886,7 +886,7 @@ class Session:
         self.audit.write("system", "line_speaker_inferred", utterance_id=u.id, old=old.speaker, new=ls.role)
         await self.send({"type": "utterance_update", "utterance": u.model_dump(), "guess": True})
 
-    async def apply_voice_role(self, vr: VoiceRole) -> None:
+    async def apply_voice_role(self, vr: VoiceRole, window: list[Utterance] | None = None) -> None:
         """The gate's guess at a voice's role. Only for a voice nobody has mapped, from a line with that voice; shown as a
         guess until the user confirms or changes it (set_speaker)."""
         conn = self.label_source.connections if self.label_source is not None else None
@@ -897,7 +897,10 @@ class Session:
         # guards (2026-10-14: one mislabelled line made a whole voice the wrong person): enough agreeing lines, and
         # no role given to two voices
         votes = self.voice_votes.setdefault(vr.voice, {})
-        votes.setdefault(vr.role, set()).add(vr.utterance_id)  # the gate cites the voice's newest line: lines add up
+        line = vr.utterance_id
+        if self.settings.voice_vote_by == "newest" and window:  # one vote per new line of the voice, whichever it cites
+            line = next((u.id for u in reversed(window) if self.line_labels.get(u.id, (None,))[0] == vr.voice), line)
+        votes.setdefault(vr.role, set()).add(line)
         mine, best_other = len(votes[vr.role]), max((len(v) for r, v in votes.items() if r != vr.role), default=0)
         if mine < self.settings.voice_guess_min_lines or mine <= best_other:
             self.events.write("voice_role_vote", **vr.model_dump(), votes={r: sorted(v) for r, v in votes.items()})
