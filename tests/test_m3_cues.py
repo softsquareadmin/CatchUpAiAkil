@@ -525,3 +525,113 @@ def test_consent_prompt_still_opens_once_per_line(tmp_path):
                                       s.store.utterances, 1)
     asyncio.run(go())
     assert len([m for m in sent if m["type"] == "consent_check"]) == 1
+
+
+# ---- repeated flags (2026-10-14): the gate sees the flags shown and marks repeats; repeats add a quote ----
+
+def test_gate_gets_the_flags_raised_and_may_only_name_them_in_same_as(tmp_path):
+    from app.adapters.deciders.llm import LLMDecider, gate_schema
+    s = gate_schema([c.id for c in PACK.checklist], ["u0001"], ["c001", "c004"])
+    assert s["properties"]["flags"]["items"]["properties"]["same_as"]["enum"] == ["", "c001", "c004"]
+    assert "same_as" in s["properties"]["flags"]["items"]["required"]
+    d = LLMDecider(PACK, object(), "openrouter", "m", Ledger(tmp_path, "s", "exp", 1.0, prices=FAKE_PRICES))
+    raised = [{"id": "c001", "topic_id": "child_safety_feelings", "note": "The child said she is afraid of Dave."}]
+    with_flags = d.messages(WINDOW, {}, flags_raised=raised)[1]["content"]
+    assert "<flags_raised>" in with_flags and '"id":"c001"' in with_flags
+    assert "<flags_raised>" not in d.messages(WINDOW, {})[1]["content"]
+    assert "<flags_raised>" in d.system and "same_as" in d.system
+
+
+def test_a_repeat_adds_its_quote_to_the_earlier_flag_instead_of_a_new_card(tmp_path):
+    s, sent = make_session(tmp_path)
+    first = Flag(topic_id="child_safety_feelings", note="The child said she is afraid of Dave.",
+                 evidence=Evidence(utterance_id="u0001", quote="I am afraid of him"))
+
+    async def go():
+        await say(s, AFRAID, SCARES)
+        await s.apply_gate_result(GateResult(flags=[first]), s.store.utterances, 1)
+        cid = next(m["cue"]["id"] for m in sent if m["type"] == "cue")
+        again = Flag(topic_id="general", note="The child said Dave scares her.", same_as=cid,
+                     evidence=Evidence(utterance_id="u0002", quote="he just scares me"))
+        await s.apply_gate_result(GateResult(flags=[again]), s.store.utterances, 1)
+        await s.apply_gate_result(GateResult(flags=[again]), s.store.utterances, 1)  # same line again: nothing new
+        return cid
+    cid = asyncio.run(go())
+    assert len([m for m in sent if m["type"] == "cue"]) == 1
+    updates = [m for m in sent if m["type"] == "cue_update" and m.get("added")]
+    assert len(updates) == 1 and updates[0]["cue"]["id"] == cid
+    assert [e["utterance_id"] for e in updates[0]["cue"]["more_evidence"]] == ["u0002"]
+    events = (tmp_path / s.id / "events.jsonl").read_text()
+    assert '"kind": "flag_added_to"' in events and '"kind": "flag_repeat_dropped"' in events
+
+
+def test_a_repeat_brings_a_noted_flag_back_so_a_new_statement_is_not_hidden(tmp_path):
+    s, sent = make_session(tmp_path)
+    first = Flag(topic_id="child_safety_feelings", note="The child said she is afraid of Dave.",
+                 evidence=Evidence(utterance_id="u0001", quote="I am afraid of him"))
+
+    async def go():
+        await say(s, AFRAID, SCARES)
+        await s.apply_gate_result(GateResult(flags=[first]), s.store.utterances, 1)
+        cid = next(m["cue"]["id"] for m in sent if m["type"] == "cue")
+        await s.cue_action(cid, "dismissed")  # Noted
+        again = Flag(topic_id="child_safety_feelings", note="The child said Dave scares her.", same_as=cid,
+                     evidence=Evidence(utterance_id="u0002", quote="he just scares me"))
+        await s.apply_gate_result(GateResult(flags=[again]), s.store.utterances, 1)
+        return cid
+    cid = asyncio.run(go())
+    assert s.board.cues[cid].state == "active"
+    assert any(c["cue"]["id"] == cid for c in s.hello()["cues"])  # a reconnecting screen shows it too
+
+
+def test_unknown_same_as_is_an_ordinary_flag_and_general_matches_a_topic_on_the_same_line(tmp_path):
+    s, sent = make_session(tmp_path)
+    ev1 = Evidence(utterance_id="u0001", quote="I am afraid of him")
+
+    async def go():
+        await say(s, AFRAID, SCARES)
+        for f in [Flag(topic_id="child_safety_feelings", note="The child said she is afraid of Dave.", evidence=ev1),
+                  Flag(topic_id="general", note="The child said she is afraid of him.", evidence=ev1),  # same line
+                  Flag(topic_id="general", note="The child said Dave scares her.", same_as="c999",
+                       evidence=Evidence(utterance_id="u0002", quote="he just scares me"))]:
+            await s.apply_gate_result(GateResult(flags=[f]), s.store.utterances, 1)
+    asyncio.run(go())
+    assert [m["cue"]["question_or_note"] for m in sent if m["type"] == "cue"] == \
+        ["The child said she is afraid of Dave.", "The child said Dave scares her."]
+
+
+def test_the_session_passes_the_flags_raised_to_a_gate_that_takes_them(tmp_path):
+    s, sent = make_session(tmp_path)
+    seen = []
+
+    class Gate(FakeDecider):
+        takes_flags = True
+
+        async def evaluate(self, window, checklist_state, flags_raised=()):
+            seen.append(list(flags_raised))
+            if window[-1].id == "u0001":
+                return GateResult(flags=[Flag(topic_id="child_safety_feelings", note="The child said she is afraid of Dave.",
+                                              evidence=Evidence(utterance_id="u0001", quote="I am afraid of him"))])
+            return GateResult()
+    s.decider = Gate(s.ledger, s.audit)
+    asyncio.run(say(s, AFRAID, SCARES))
+    assert seen[0] == [] and seen[1] == [{"id": "c001", "topic_id": "child_safety_feelings",
+                                          "note": "The child said she is afraid of Dave."}]
+
+
+def test_the_report_lists_the_added_quotes_under_the_flag(tmp_path):
+    from app.export import build_report, load_session
+    s, sent = make_session(tmp_path)
+    first = Flag(topic_id="child_safety_feelings", note="The child said she is afraid of Dave.",
+                 evidence=Evidence(utterance_id="u0001", quote="I am afraid of him"))
+
+    async def go():
+        await say(s, AFRAID, SCARES)
+        await s.apply_gate_result(GateResult(flags=[first]), s.store.utterances, 1)
+        await s.apply_gate_result(GateResult(flags=[Flag(
+            topic_id="child_safety_feelings", note="Again.", same_as="c001",
+            evidence=Evidence(utterance_id="u0002", quote="he just scares me"))]), s.store.utterances, 1)
+    asyncio.run(go())
+    (tmp_path / s.id / "draft_note.json").write_text(json.dumps({"topics": [], "items": []}))
+    r = build_report(load_session(tmp_path / s.id), PACK, include_unreviewed=True)
+    assert len(r["flags"]) == 1 and [q["utterance_id"] for q in r["flags"][0]["evidence"]] == ["u0001", "u0002"]

@@ -325,13 +325,15 @@ class Session:
             self.gate_pending = end < total
             t0 = time.monotonic()
             ms = lambda: int((time.monotonic() - t0) * 1000)  # noqa: E731
+            # the flags already shown, so the gate can mark a repeat instead of raising it again
+            extra = {"flags_raised": self.board.flags_raised()} if getattr(self.decider, "takes_flags", False) else {}
             try:
                 if getattr(self.decider, "staged", False):
                     async def on_partial(fast: GateResult) -> None:
                         await self.apply_gate_result(fast, window, ms(), stage="fast")
-                    result = await self.decider.evaluate(window, dict(self.checklist), on_partial=on_partial)
+                    result = await self.decider.evaluate(window, dict(self.checklist), on_partial=on_partial, **extra)
                 else:
-                    result = await self.decider.evaluate(window, dict(self.checklist))
+                    result = await self.decider.evaluate(window, dict(self.checklist), **extra)
             except BudgetExceeded as e:
                 self.decider, self.gate_off_reason = None, str(e)
                 self.audit.write("system", "budget_exceeded", message=str(e))
@@ -393,21 +395,33 @@ class Session:
 
     async def on_flag(self, f: Flag) -> None:
         consent = f.topic_id == self.pack.special_topics.consent_topic  # one consent prompt per line, whatever it names
+        if f.same_as and not consent and f.same_as in self.board.cues:
+            await self.add_to_flag(f)
+            return
+        if not consent and (lint := self.lint.note(f.note)):  # before de-duplication: a dropped flag blocks nothing
+            self.events.write("rejected", flag=f.model_dump(), reason=f"lint: {lint}")
+            return
         roles = frozenset() if consent else roles_named(self.pack, f.note)
         if not self.board.is_new_flag(f.topic_id, f.evidence.utterance_id, roles) or self.stopped:
             return
-        if f.topic_id == self.pack.special_topics.consent_topic:  # the pack asks the gate to flag a refusal here
+        if consent:  # the pack asks the gate to flag a refusal here
             self.audit.write("system", "consent_refusal_detected", note=f.note, evidence=f.evidence.model_dump())
             await self.send({"type": "consent_check", "note": f.note, "evidence": f.evidence.model_dump()})
-            return
-        if lint := self.lint.note(f.note):
-            self.events.write("rejected", flag=f.model_dump(), reason=f"lint: {lint}")
             return
         cue = self.board.add(Cue(id="", topic_id=f.topic_id, kind="flag", question_or_note=f.note,
                                  evidence=f.evidence, created_at_ms=self.elapsed_ms()))
         self.events.write("cue", cue=cue.model_dump())
         self.audit.write("system", "ai_output_shown", kind="flag", cue_id=cue.id, topic_id=cue.topic_id)
         await self.send({"type": "cue", "cue": cue.model_dump()})
+
+    async def add_to_flag(self, f: Flag) -> None:
+        """The gate says this flag repeats an earlier one: add its quote to that card (shown again if it was Noted)."""
+        if self.stopped or (cue := self.board.add_to_flag(f.same_as, f.evidence)) is None:
+            self.events.write("flag_repeat_dropped", flag=f.model_dump())
+            return
+        self.events.write("flag_added_to", cue_id=cue.id, evidence=f.evidence.model_dump(), note=f.note)
+        self.audit.write("system", "ai_output_shown", kind="flag_quote_added", cue_id=cue.id, topic_id=cue.topic_id)
+        await self.send({"type": "cue_update", "cue": cue.model_dump(), "added": True})
 
     async def after_topic_changes(self, changed: list[TopicState]) -> None:
         for s in changed:  # an active card no longer matches its topic's follow-up level

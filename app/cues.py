@@ -4,7 +4,7 @@ Generic rules live here; domain word lists come from the pack's `guardrails` (CP
 import re
 
 from app.evidence import normalise
-from app.models import Cue, Guardrails, TopicState, UseCasePack, Utterance
+from app.models import Cue, Evidence, Guardrails, TopicState, UseCasePack, Utterance
 
 # A question for the user must be open-ended. "Can/could you tell me ..." is open; other yes/no starts are not.
 _OPEN_CAN = r"(?! you (tell|describe|help|say|share|show|remember|think of|walk me through))"
@@ -157,7 +157,9 @@ class CueBoard:
     """At most one active follow-up cue per topic; a cooldown after one is dismissed or asked. A failed write is
     retried on the next gate run, at most MAX_FAILS times per topic and follow-up level. Flags are de-duplicated
     by (topic, utterance), except that a later flag on the same line is shown when it names a role the earlier
-    ones did not (a comparison such as "..., while the other person said ..." quotes the same line as the first concern)."""
+    ones did not (a comparison such as "..., while the other person said ..." quotes the same line as the first concern).
+    A flag under "general" and one under a topic count as the same topic here. A flag the gate marks as a repeat
+    (Flag.same_as) adds its quote to the earlier card instead (add_to_flag)."""
 
     MAX_FAILS = 2
 
@@ -194,11 +196,28 @@ class CueBoard:
 
     def is_new_flag(self, topic_id: str, utterance_id: str, roles: set[str] | frozenset = frozenset()) -> bool:
         """roles: the roles the flag's note names (see roles_named). Records the flag when it is new."""
-        key = (topic_id, utterance_id)
-        if key in self.flag_keys and not set(roles) - self.flag_keys[key]:
+        seen = [r for (t, u), r in self.flag_keys.items()
+                if u == utterance_id and (t == topic_id or "general" in (t, topic_id))]
+        if seen and not set(roles) - set().union(*seen):
             return False
-        self.flag_keys.setdefault(key, set()).update(roles)
+        self.flag_keys.setdefault((topic_id, utterance_id), set()).update(roles)
         return True
+
+    def add_to_flag(self, cue_id: str, evidence: Evidence) -> Cue | None:
+        """A repeat of flag cue_id quoting a new line: the quote is added and the card shown again (also when it was
+        marked Noted, so a new statement is never hidden). None when cue_id is not a flag or the line is already on it."""
+        cue = self.cues.get(cue_id)
+        if cue is None or cue.kind != "flag" or \
+                evidence.utterance_id in {e.utterance_id for e in [cue.evidence, *cue.more_evidence]}:
+            return None
+        cue = self.cues[cue_id] = cue.model_copy(update={"more_evidence": [*cue.more_evidence, evidence], "state": "active"})
+        self.flag_keys.setdefault((cue.topic_id, evidence.utterance_id), set())
+        return cue
+
+    def flags_raised(self, limit: int = 20) -> list[dict]:
+        """The flags shown so far (newest last, at most `limit`), for the gate to recognise repeats."""
+        flags = [c for c in self.cues.values() if c.kind == "flag"][-limit:]
+        return [{"id": c.id, "topic_id": c.topic_id, "note": c.question_or_note} for c in flags]
 
     def resolve(self, cue_id: str, new_state: str, now_s: float) -> Cue | None:
         cue = self.cues.get(cue_id)

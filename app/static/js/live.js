@@ -114,7 +114,13 @@ function onMessage(msg) {
       renderCards();
       if (msg.latency_ms != null) setBadge("cueState", `cue ${msg.latency_ms} ms`, "ok", $("cueState").title);
       break;
-    case "cue_update": state.cues.set(msg.cue.id, { ...state.cues.get(msg.cue.id), cue: msg.cue }); renderCards(); break;
+    case "cue_update": {
+      const prev = state.cues.get(msg.cue.id);
+      if (msg.added) { state.cues.delete(msg.cue.id); state.seenCues.delete(msg.cue.id); }  // said again: back on top, flashes
+      state.cues.set(msg.cue.id, { ...prev, cue: msg.cue });
+      renderCards();
+      break;
+    }
     case "cue_withdrawn": state.cues.delete(msg.id); renderCards(); break;
     case "note": addNote(msg.note); break;
     case "consent_check": askConsent(msg); break;
@@ -270,7 +276,12 @@ function card({ cue, level }) {
   const li = el("li", { className: `cue ${isFlag ? "flag" : level}` });
   if (!state.seenCues.has(cue.id)) { li.classList.add("new"); state.seenCues.add(cue.id); }
   const head = el("div", { className: "cue-head" });
-  if (isFlag) head.append(el("span", { className: "badge badge-flag" }, icon("flag"), "Flag"), labelOf(cue.topic_id));
+  if (isFlag) {
+    head.append(el("span", { className: "badge badge-flag" }, icon("flag"), "Flag"), labelOf(cue.topic_id));
+    const more = (cue.more_evidence || []).length;
+    if (more) head.append(el("span", { className: "badge badge-neutral", title: "Later lines said the same thing; their quotes were added here" },
+      `↻ Said again${more > 1 ? ` ×${more}` : ""}`));
+  }
   else {
     head.append(el("span", { className: `badge ${level === "required" ? "badge-solid-danger" : "badge-warn"}` },
       level === "required" ? "! Required" : "? Suggested"), labelOf(cue.topic_id));
@@ -284,7 +295,8 @@ function card({ cue, level }) {
     b.addEventListener("click", () => send({ type: "cue_action", id: cue.id, action }));
     actions.append(b);
   }
-  li.append(head, el("p", { className: "ask" }, cue.question_or_note), quoteButton(cue.evidence, jumpTo), actions);
+  li.append(head, el("p", { className: "ask" }, cue.question_or_note),
+    ...[cue.evidence, ...(cue.more_evidence || [])].map((ev) => quoteButton(ev, jumpTo)), actions);
   return li;
 }
 

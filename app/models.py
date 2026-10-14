@@ -82,6 +82,7 @@ class Flag(BaseModel):
     topic_id: str
     note: str
     evidence: Evidence
+    same_as: str = ""  # id of an earlier flag this one repeats: its quote is added to that card, no new card
 
 
 class AnswerQuality(BaseModel):
@@ -104,6 +105,7 @@ class Cue(BaseModel):
     created_at_ms: int
     state: Literal["active", "dismissed", "asked"] = "active"
     updated: bool = False  # rewritten after later lines changed what is missing (replaces an earlier card)
+    more_evidence: list[Evidence] = []  # flags: later lines the gate found saying the same thing (Flag.same_as)
 
 
 class FormField(BaseModel):

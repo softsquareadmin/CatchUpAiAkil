@@ -94,8 +94,12 @@ def build_report(data: dict, pack: UseCasePack, *, include_unreviewed: bool = Fa
     review_acts = [a["ts"] for a in audit if a["actor"] == "user" and
                    (a["action"].startswith("review_") or a["action"] == "topic_status_changed_by_user")]
     notes = [{"t_ms": e["t_ms"], "text": e["text"]} for e in events if e.get("kind") == "note"]
+    added: dict[str, list[dict]] = {}  # flag cue id -> quotes from later lines the gate marked as repeats
+    for e in events:
+        if e.get("kind") == "flag_added_to":
+            added.setdefault(e["cue_id"], []).append(e["evidence"])
     flags = [{"topic_id": e["cue"]["topic_id"], "note": e["cue"]["question_or_note"],
-              "evidence": quotes([e["cue"]["evidence"]]), "status": "proposed"}
+              "evidence": quotes([e["cue"]["evidence"], *added.get(e["cue"]["id"], [])]), "status": "proposed"}
              for e in events if e.get("kind") == "cue" and e["cue"]["kind"] == "flag"]
     counts["not_reviewed"] += 0 if include_unreviewed else len(flags)
     consent = None
