@@ -52,10 +52,13 @@ def section_titles(pack: UseCasePack) -> list[dict]:
 def review_schema(pack: UseCasePack, utterance_ids: list[str], only: list[str] | None = None) -> dict:
     """utterance_id is a plain string here, not an enum of every line: with many sections and a long transcript the
     enum repeated in every evidence field made Anthropic's strict grammar too large ("compiled grammar is too large",
-    M10 job interview run). build_items validates every id and quote against the transcript anyway."""
-    ev = {"type": "array", "items": {
+    M10 job interview run). build_items validates every id and quote against the transcript anyway. The evidence list
+    is defined once and referenced: written out in every section it made the grammar too large again (CPS pack with two
+    custom sections, 2026-10-13; the same schema with a shared definition compiles)."""
+    ev_def = {"type": "array", "items": {
         "type": "object", "additionalProperties": False, "required": ["utterance_id", "quote"],
         "properties": {"utterance_id": {"type": "string"}, "quote": {"type": "string"}}}}
+    ev = {"$ref": "#/$defs/evidence"}
     s = {"type": "string"}
     topic = {"type": "string", "enum": [c.id for c in pack.checklist]}
 
@@ -95,7 +98,8 @@ def review_schema(pack: UseCasePack, utterance_ids: list[str], only: list[str] |
     if only is not None:  # a retry of the sections that came back empty (see lost_sections)
         keep = {RAW_KEY.get(x, x) for x in only} | ({"custom"} if customs else set())
         props = {k: v for k, v in props.items() if k in keep}
-    return {"type": "object", "additionalProperties": False, "required": list(props), "properties": props}
+    return {"type": "object", "additionalProperties": False, "required": list(props), "properties": props,
+            "$defs": {"evidence": ev_def}}
 
 
 RAW_KEY = {"form": "form_fields"}  # section id -> key in the model's draft, where they differ

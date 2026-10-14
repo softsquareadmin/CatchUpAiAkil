@@ -3,8 +3,9 @@
 # Pending John Smith's formal approval of the full topic list.
 # 0.4.0 (M7, 2026-10-08): pack_format 2. CPS rules moved here from code (roles, lint word lists, special topics,
 # review sections, prompt text); topic definitions unchanged. Change log: docs/dev-notes/PROGRESS.md "Pack change log".
+# 0.5.0 (2026-10-13): Safety Flags and Child's Direct Statements review sections, worded as CatchUp's aligned template.
 id: cps_interview_v2
-version: "0.4.0"   # 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
+version: "0.5.0"   # 0.4.0: pack_format 2 (M7); 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
 pack_format: 2
 name: CPS interview (parent and child)
 purpose: >
@@ -170,6 +171,22 @@ special_topics:
 
 review:
   sections: [summary, topics_not_covered, follow_ups, form, timeline, accounts, missing_accounts, next_steps]
+  custom_sections:
+  - id: safety_flags
+    label: Safety Flags
+    type: list
+    required: true
+    instruction: >
+      List statements in the conversation that raise a concern for the child's safety, each with a short quote and
+      who said it. Describe what was said; do not draw conclusions about whether abuse occurred or about anyone's
+      credibility.
+  - id: child_direct_statements
+    label: Child's Direct Statements
+    type: list
+    required: true
+    instruction: >
+      List the most significant things the child said, quoted or closely paraphrased, about safety, fear, the injury,
+      or the people in the child's life. Preserve the child's own words.
   extra_sources:
     - {id: report, label: The report, spoken_by: worker, description: the worker reading out the report}
   account_groups:

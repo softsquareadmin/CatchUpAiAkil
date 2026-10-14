@@ -381,6 +381,17 @@ def test_an_item_about_what_was_not_said_stands_on_the_checklist_status():
     assert not items and {r["reason"] for r in rej} == {"no_valid_evidence"}
 
 
+
+def test_review_schema_defines_evidence_once():
+    """Evidence written out in every section made Anthropic's strict grammar too large (2026-10-13): one $ref."""
+    for pk in (CPS, JOB, TINY):
+        schema = review_schema(pk, [])
+        assert schema["$defs"]["evidence"]["items"]["required"] == ["utterance_id", "quote"]
+        refs = [v["items"]["properties"]["evidence"] for v in schema["properties"].values() if "items" in v]
+        assert refs and all(r == {"$ref": "#/$defs/evidence"} for r in refs)
+
+
+
 def test_overall_assessment_gaps_may_rest_on_the_checklist_but_strengths_need_quotes():
     from app.review import build_items
     weak, ps = "weakness_and_professional_improvement", JOB.checklist[1].id
