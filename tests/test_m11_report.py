@@ -288,7 +288,8 @@ def test_review_states_in_the_export():
     incl, page = run(report_for("packs/job_interview_v1.yaml", "tests/fixtures/job_interview_sample.json", "x",
                                 review=False, include_unreviewed=True))
     assert incl["not_included"]["not_reviewed"] == 0 and incl["custom_and_other_sections"]
-    assert 'class="unrev"' in page and ">Not reviewed<" in page
+    assert 'class="unrev"' in page and "Not reviewed<" not in page  # one count line, not a badge per item
+    assert f'0 of {incl["reviewed_count"]["total"]} items reviewed.' in page and incl["reviewed_count"]["total"] > 0
     assert all(i["status"] == "proposed" for s in incl["custom_and_other_sections"] for i in s["items"])
 
 
@@ -336,7 +337,7 @@ def test_ws_report_viewed_exported_and_options_audited(tmp_path):
     assert r.status_code == 200 and "attachment" in r.headers["content-disposition"]
     assert "Not yet reviewed by Sam." in r.text and 'id="u0001"' in r.text and (tmp_path / sid / "report.html").exists()
     js = client.get(f"/api/sessions/{sid}/export.json?cost=true").json()
-    assert js["report_format_version"] == 1 and "cost_usd" in js and "transcript" not in js
+    assert js["report_format_version"] == 2 and "cost_usd" in js and "transcript" not in js
     view = client.get(f"/api/sessions/{sid}/export.html?view=true")
     assert "content-disposition" not in view.headers
     audit = client.get(f"/api/sessions/{sid}/audit").json()

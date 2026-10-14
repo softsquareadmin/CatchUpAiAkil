@@ -46,7 +46,7 @@ def test_sessions_list_and_costs(tmp_path):
     sid = run_interview(client)
     rows = client.get("/api/sessions").json()
     row = next(r for r in rows if r["id"] == sid)
-    assert row["pack"] == "cps_interview_v2@0.5.0" and row["has_review"] and row["lines"] > 20
+    assert row["pack"] == "cps_interview_v2@0.5.1" and row["has_review"] and row["lines"] > 20
     assert row["status"] == "review ready" and row["duration_s"] > 60 and not row["exported"]
     costs = client.get("/api/costs").json()
     assert set(costs) == {"rows", "totals", "experiments", "health"}  # fake calls cost nothing and are left out

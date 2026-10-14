@@ -7,12 +7,13 @@
 *{box-sizing:border-box}
 body{margin:0 auto;max-width:860px;padding:24px 16px 48px;background:var(--bg);color:var(--fg);
 font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow-wrap:anywhere}
-h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:28px 0 10px}h3{font-size:16px;margin:0}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:0}h3{font-size:16px;margin:0}
 h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+a{color:var(--accent)}
 .meta{color:var(--muted);font-size:13px;margin:0}.meta b{color:var(--fg);font-weight:600}
 .sample{display:inline-block;background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:2px 10px;
 font-weight:700;font-size:13px;margin-bottom:8px}
-.banner{border:2px solid var(--fg);border-radius:8px;padding:10px 14px;margin:16px 0;font-weight:600}
+.banner{border:2px solid var(--fg);border-radius:8px;padding:10px 14px;margin:16px 0 6px;font-weight:600}
 .omitted{color:var(--muted);font-size:13px;margin:4px 0}
 .coverage{display:flex;align-items:center;gap:28px;padding:16px;border:1px solid var(--line);border-radius:9px;
 background:var(--panel)}
@@ -25,104 +26,104 @@ justify-content:center;align-items:center;transform:rotate(90deg)}
 .stat b{display:block;font-size:26px}.stat{font-size:13px;color:var(--muted)}
 .stat.covered b{color:var(--cov)}.stat.partial b{color:var(--par)}.stat.not_covered b{color:var(--not)}
 .covnote{font-size:13px;color:var(--muted);margin:8px 0 0}
+.jump{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 0 0;padding:0;list-style:none;font-size:14px}
+.cov-title{margin:28px 0 10px}
+details.sec{margin:26px 0 0}details.sec>summary,details.group>summary{cursor:pointer;list-style-position:outside}
+details.sec>summary h2,details.group>summary h3{display:inline}
+.count{color:var(--muted);font-size:14px;font-weight:400}
+.secbody{padding:4px 0 0}
+section.topics>h2{margin:26px 0 6px}details.group{margin:8px 0 0}details.group>summary{padding:6px 0}
 details.topic{--c:var(--muted);--cb:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);
 border-radius:8px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
 .topic.covered{--c:var(--cov);--cb:var(--cov-bg)}.topic.partial{--c:var(--par);--cb:var(--par-bg)}
 .topic.not_covered{--c:var(--not);--cb:var(--not-bg)}
 .topic>summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;cursor:pointer}
 .topic>summary h3{flex:1;min-width:12em}
+.fq{flex-basis:100%;margin:0;font-size:14px}.fq b{color:var(--muted);font-weight:600}
 .sym{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
 background:var(--c);color:var(--bg);font-weight:700}
 .chip{color:var(--c);background:var(--cb);border:1px solid var(--c);padding:2px 10px;border-radius:999px;
 font-size:12px;white-space:nowrap}
+.req{color:var(--not);background:var(--not-bg);border:1px solid var(--not);padding:2px 10px;border-radius:999px;
+font-size:12px;font-weight:700;white-space:nowrap}
 .pts{font-size:13px;color:var(--muted)}
 .mark{background:var(--mark-bg);color:var(--mark);border-radius:999px;padding:1px 8px;font-size:12px;
 font-weight:600;white-space:nowrap}
 .unrev{border:1px dashed var(--mark);border-radius:6px;padding:4px 8px}
 .tbody{padding:0 14px 12px}.empty{color:var(--muted);font-style:italic}
 .changed{font-size:13px;background:var(--panel);border-radius:6px;padding:6px 10px;margin:8px 0 0}
-ol.quotes,ul.items{margin:4px 0;padding-left:22px}ol.quotes li,ul.items li{margin:4px 0}
+ol.quotes,ul.items{margin:4px 0;padding-left:22px}ol.quotes li,ul.items li{margin:6px 0}
 q{font-style:italic}.who{color:var(--muted);font-size:12px;white-space:nowrap}
+.refs{font-size:12px;margin-left:6px}.refs a{white-space:nowrap}.refs a+a{margin-left:8px}p.who{white-space:normal}
+table.accounts{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}
+.accounts th,.accounts td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:left}
+.accounts thead th{background:var(--panel);font-size:13px}.accounts tbody th{width:18%}
+.cell+.cell{margin-top:8px}.accounts .unh{white-space:nowrap;overflow-wrap:normal}.unheard{font-size:14px;margin:8px 0}
+.see{font-size:14px;color:var(--muted)}
 .overall{border:2px dashed var(--mark);border-radius:9px;padding:4px 16px 12px;margin-top:28px}
+.notes h2{margin:28px 0 6px}
 .transcript p{margin:4px 0}.transcript .who{display:inline-block;min-width:9em}
 footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 #expand{float:right;font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;
 background:var(--panel);color:var(--fg);cursor:pointer}
 @media (max-width:640px){.coverage{flex-direction:column;align-items:stretch}.ring{align-self:center}
-.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.accounts thead{display:none}.accounts,.accounts tbody,.accounts tr,.accounts th,.accounts td{display:block;width:100%}
+.accounts tr{margin:0 0 10px}.accounts tbody th{width:100%;background:var(--panel)}
+.accounts td::before{content:attr(data-label);display:block;font-size:12px;font-weight:700;color:var(--muted)}}
 @media print{:root{--bg:#fff;--fg:#000;--muted:#333;--line:#999;--panel:#fff;--accent:#000;--track:#ccc;--cov:#000;
 --cov-bg:#fff;--par:#000;--par-bg:#fff;--not:#000;--not-bg:#fff;--mark:#000;--mark-bg:#fff}
-body{max-width:none;padding:0}#expand{display:none}.ring{print-color-adjust:exact;-webkit-print-color-adjust:exact}
-details.topic::details-content{content-visibility:visible;display:block}a{color:inherit;text-decoration:none}}
+body{max-width:none;padding:0}#expand,.jump{display:none}.ring{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+details::details-content{content-visibility:visible;display:block}a{color:inherit;text-decoration:none}}
 </style></head><body>
 <header><button id="expand" type="button" hidden>Expand all</button>
 <p class="sample">Sample, fictional data</p>
 <h1>Job interview</h1><p class="meta"><b>Pack</b> job_interview_v1@0.1.0 · <b>Date</b> 2026-10-08 12:00 UTC · <b>Duration</b> 1:18 · <b>Input</b> Replay</p><p class="meta"><b>Roles</b> Interviewer (user), Candidate · <b>Session</b> job_interview_sample</p></header>
 <p class="banner">AI-assisted draft. Reviewed by the interviewer on 2026-10-08. Not a decision.</p>
+<p class="omitted">27 of 27 items reviewed.</p>
 <p class="omitted">1 item rejected by the interviewer, not shown.</p>
-<h2>Checklist coverage</h2><section class="coverage">
+<h2 class="cov-title">Checklist coverage</h2><section class="coverage">
 <div class="ring" style="--p:10%"><div><strong>10%</strong><span>Checklist coverage</span></div></div>
 <div class="stats"><div class="stat covered"><b>0</b>Covered</div><div class="stat partial"><b>1</b>Partial</div><div class="stat not_covered"><b>4</b>Not covered</div><div class="stat"><b>5</b>Required topics</div></div></section>
 <p class="covnote">How much of the checklist the conversation covered (covered 100, partial 50, not covered 0, averaged over required topics). It is not a rating of anyone.</p>
-<h2>Topics</h2>
-<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Professional Background and Experience</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<ul class="jump"><li><a href="#topics">Topics</a></li></ul>
+<section class="topics" id="topics"><h2>Topics</h2>
+<details class="group" open><summary><h3>Needs follow-up (5)</h3></summary>
+<details class="topic not_covered" id="topic-professional_background_and_experience"><summary><span class="sym" aria-hidden="true">!</span><h3>Professional Background and Experience</h3><span class="pts">0%</span><span class="chip">Not covered</span><p class="fq"><b>Suggested follow-up:</b> What happened next, in your own words? <span class="mark">edited</span></p></summary><div class="tbody">
 <h4>Summary</h4>
 <p class="empty">Not discussed.</p>
-<h4>Still missing</h4><ul class="items"><li>Candidate&#x27;s educational background and university</li><li>At least two previous internships or organizations</li><li>Technical and business experience</li></ul>
-<h4>Suggested follow-up</h4><p>What happened next, in your own words? <span class="mark">edited</span></p>
+<h4>Still missing <span class="mark">accepted</span></h4><ul class="items"><li>Candidate&#x27;s educational background and university</li><li>At least two previous internships or organizations</li><li>Technical and business experience</li></ul>
 </div></details>
-<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Problem-Solving and Measurable Results</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<details class="topic not_covered" id="topic-problem_solving_and_measurable_results"><summary><span class="sym" aria-hidden="true">!</span><h3>Problem-Solving and Measurable Results</h3><span class="pts">0%</span><span class="chip">Not covered</span><p class="fq"><b>Suggested follow-up:</b> Can you tell me more about that? <span class="mark">accepted</span></p></summary><div class="tbody">
 <h4>Summary</h4>
 <p class="empty">Not discussed.</p>
-<h4>Still missing</h4><ul class="items"><li>A specific difficult problem or challenge</li><li>Actions personally taken to solve the problem</li><li>A clear outcome or measurable result</li></ul>
-<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+<h4>Still missing <span class="mark">accepted</span></h4><ul class="items"><li>A specific difficult problem or challenge</li><li>Actions personally taken to solve the problem</li><li>A clear outcome or measurable result</li></ul>
 </div></details>
-<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Weakness and Professional Improvement</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<details class="topic not_covered" id="topic-weakness_and_professional_improvement"><summary><span class="sym" aria-hidden="true">!</span><h3>Weakness and Professional Improvement</h3><span class="pts">0%</span><span class="chip">Not covered</span><p class="fq"><b>Suggested follow-up:</b> Can you tell me more about that? <span class="mark">accepted</span></p></summary><div class="tbody">
 <h4>Summary</h4>
 <p class="empty">Not discussed.</p>
-<h4>Still missing</h4><ul class="items"><li>Candidate identifies a genuine professional weakness</li><li>Provides a specific real-life example of its impact</li><li>Explains concrete steps taken to improve</li></ul>
-<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+<h4>Still missing <span class="mark">accepted</span></h4><ul class="items"><li>Candidate identifies a genuine professional weakness</li><li>Provides a specific real-life example of its impact</li><li>Explains concrete steps taken to improve</li></ul>
 </div></details>
-<details class="topic not_covered" open><summary><span class="sym" aria-hidden="true">!</span><h3>Handling Ethical Dilemmas</h3><span class="pts">0%</span><span class="chip">Not covered</span></summary><div class="tbody">
+<details class="topic not_covered" id="topic-handling_ethical_dilemmas"><summary><span class="sym" aria-hidden="true">!</span><h3>Handling Ethical Dilemmas</h3><span class="pts">0%</span><span class="chip">Not covered</span><p class="fq"><b>Suggested follow-up:</b> Can you tell me more about that? <span class="mark">accepted</span></p></summary><div class="tbody">
 <h4>Summary</h4>
 <p class="empty">Not discussed.</p>
-<h4>Still missing</h4><ul class="items"><li>A specific ethical dilemma or workplace integrity issue</li><li>Competing responsibilities or ethical considerations</li><li>Action taken to resolve the situation</li></ul>
-<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+<h4>Still missing <span class="mark">accepted</span></h4><ul class="items"><li>A specific ethical dilemma or workplace integrity issue</li><li>Competing responsibilities or ethical considerations</li><li>Action taken to resolve the situation</li></ul>
 </div></details>
-<details class="topic partial" open><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Leadership and Team Management</h3><span class="pts">50%</span><span class="chip">Partial</span></summary><div class="tbody">
+<details class="topic partial" id="topic-leadership_and_team_management"><summary><span class="sym" aria-hidden="true">&#9684;</span><h3>Leadership and Team Management</h3><span class="pts">50%</span><span class="chip">Partial</span><p class="fq"><b>Suggested follow-up:</b> Can you tell me more about that? <span class="mark">accepted</span></p></summary><div class="tbody">
 <h4>Summary</h4>
-<p>Candidate said: I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</p>
+<p>Candidate said: I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people. <span class="mark">accepted</span></p>
 <h4>Quotes</h4><ol class="quotes"><li><q>I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</q> <span class="who">Candidate, 0:40 · u0006</span></li></ol>
-<h4>Still missing</h4><ul class="items"><li>A specific leadership experience</li><li>Team size and responsibilities</li><li>How the candidate handled team conflict or performance challenges</li></ul>
-<h4>Suggested follow-up</h4><p>Can you tell me more about that?</p>
+<h4>Still missing <span class="mark">accepted</span></h4><ul class="items"><li>A specific leadership experience</li><li>Team size and responsibilities</li><li>How the candidate handled team conflict or performance challenges</li></ul>
 </div></details>
-<h2>Attributed summary</h2><ul class="items">
-<li><b>Candidate said:</b> Said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-<li><b>Candidate said:</b> Said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.<ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li>
-<li><b>Candidate said:</b> Said: I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.<ol class="quotes"><li><q>I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</q> <span class="who">Candidate, 0:40 · u0006</span></li></ol></li>
-<li><b>Candidate said:</b> Said: The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.<ol class="quotes"><li><q>The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.</q> <span class="who">Candidate, 0:53 · u0008</span></li></ol></li>
-<li><b>Candidate said:</b> Said: It worked, I think. Things were better afterwards.<ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · u0010</span></li></ol></li>
-<li><b>Candidate said:</b> Said: Not formally. I sometimes coordinated the two interns on the migration.<ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · u0012</span></li></ol></li>
-</ul>
-<h2>Summary</h2><ul class="items">
-<li><b>Summary:</b> As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-</ul>
-<h2>Important Facts</h2><ul class="items">
-<li><b>Important Facts:</b> As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-<li><b>Important Facts:</b> As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.<ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li>
-</ul>
-<h2>Questions Not Yet Asked</h2><ul class="items">
-<li><b>Questions Not Yet Asked:</b> As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-<li><b>Questions Not Yet Asked:</b> As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.<ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li>
-</ul>
-<h2>Questions Needing Clarification</h2><ul class="items">
-<li><b>Questions Needing Clarification:</b> As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-<li><b>Questions Needing Clarification:</b> As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.<ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li>
-</ul>
-<h2>Recommended Next Action</h2><ul class="items">
-<li><b>Recommended Next Action:</b> As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.<ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li>
-</ul>
+</details>
+</section>
+<details class="sec" id="sec-summary"><summary><h2>Attributed summary</h2><span class="count"> · 6 statements</span></summary><div class="secbody"><ul class="items"><li id="item-summary.1"><b>Candidate said:</b> Said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li><li id="item-summary.2"><b>Candidate said:</b> Said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system. <span class="mark">accepted</span><ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li><li id="item-summary.3"><b>Candidate said:</b> Said: I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people. <span class="mark">accepted</span> <span class="refs"><a href="#topic-leadership_and_team_management" title="Candidate: I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.">0:40 · u0006</a></span></li><li id="item-summary.4"><b>Candidate said:</b> Said: The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it. <span class="mark">accepted</span><ol class="quotes"><li><q>The stock migration kept failing overnight. I traced it to duplicate product codes, wrote a script to flag them, and we reran it.</q> <span class="who">Candidate, 0:53 · u0008</span></li></ol></li><li id="item-summary.5"><b>Candidate said:</b> Said: It worked, I think. Things were better afterwards. <span class="mark">accepted</span><ol class="quotes"><li><q>It worked, I think. Things were better afterwards.</q> <span class="who">Candidate, 1:06 · u0010</span></li></ol></li><li id="item-summary.6"><b>Candidate said:</b> Said: Not formally. I sometimes coordinated the two interns on the migration. <span class="mark">accepted</span><ol class="quotes"><li><q>Not formally. I sometimes coordinated the two interns on the migration.</q> <span class="who">Candidate, 1:14 · u0012</span></li></ol></li></ul></div></details>
+<details class="sec" id="sec-custom.summary" open><summary><h2>Summary</h2></summary><div class="secbody"><ul class="items"><li id="item-custom.summary.1">As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li></ul></div></details>
+<details class="sec" id="sec-custom.important_facts" open><summary><h2>Important Facts</h2></summary><div class="secbody"><ul class="items"><li id="item-custom.important_facts.1">As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li><li id="item-custom.important_facts.2">As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system. <span class="mark">accepted</span><ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li></ul></div></details>
+<details class="sec" id="sec-custom.questions_not_yet_asked" open><summary><h2>Questions Not Yet Asked</h2></summary><div class="secbody"><ul class="items"><li id="item-custom.questions_not_yet_asked.1">As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li><li id="item-custom.questions_not_yet_asked.2">As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system. <span class="mark">accepted</span><ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li></ul></div></details>
+<details class="sec" id="sec-custom.questions_needing_clarification" open><summary><h2>Questions Needing Clarification</h2></summary><div class="secbody"><ul class="items"><li id="item-custom.questions_needing_clarification.1">As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li><li id="item-custom.questions_needing_clarification.2">As said: Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system. <span class="mark">accepted</span><ol class="quotes"><li><q>Mostly data cleanup and some client calls. I helped a retail client move their stock records into a new system.</q> <span class="who">Candidate, 0:26 · u0004</span></li></ol></li></ul></div></details>
+<details class="sec" id="sec-custom.recommended_next_action" open><summary><h2>Recommended Next Action</h2></summary><div class="secbody"><ul class="items"><li id="item-custom.recommended_next_action.1">As said: Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy. <span class="mark">accepted</span><ol class="quotes"><li><q>Sure. I did a degree in industrial engineering at Lakeside Polytechnic, then spent a summer at a logistics firm and a year at a small software consultancy.</q> <span class="who">Candidate, 0:09 · u0002</span></li></ol></li></ul></div></details>
 <section class="overall"><h2>Overall assessment (draft for human review) <span class="mark">Draft for human review</span></h2><ul class="items">
-<li><b>Gap · Leadership and Team Management:</b> Only partly answered: Leadership and Team Management<ol class="quotes"><li><q>I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</q> <span class="who">Candidate, 0:40 · u0006</span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
+<li id="item-overall_assessment.1"><b>Gap · Leadership and Team Management:</b> Only partly answered: Leadership and Team Management <span class="mark">accepted</span><ol class="quotes"><li><q>I&#x27;d like to end up leading operations projects, ideally somewhere that mixes analysis with working directly with people.</q> <span class="who">Candidate, 0:40 · u0006</span></li></ol><p class="who">Based on the checklist: Leadership and Team Management (partial)</p></li>
 </ul></section>
-<footer><p>Models: gate: fake:keyword · cue: fake:template · review: fake:template. Generated on 2026-10-08.</p><p>This tool listens to an interview, tracks which checklist topics were covered and suggests follow-up questions. It does not judge credibility, make findings or decide anything; a person reviews every item.</p></footer><script>(function(){var b=document.getElementById('expand');b.hidden=false;var d=document.querySelectorAll('details.topic');b.onclick=function(){var o=[].some.call(d,function(x){return !x.open});[].forEach.call(d,function(x){x.open=o});b.textContent=o?'Collapse all':'Expand all'};window.addEventListener('beforeprint',function(){[].forEach.call(d,function(x){x.open=true})})})();</script></body></html>
+<footer><p>Models: gate: fake:keyword · cue: fake:template · review: fake:template. Generated on 2026-10-08.</p><p>This tool listens to an interview, tracks which checklist topics were covered and suggests follow-up questions. It does not judge credibility, make findings or decide anything; a person reviews every item.</p></footer><script>(function(){var b=document.getElementById('expand');b.hidden=false;function all(){return document.querySelectorAll('details')}b.onclick=function(){var d=all(),o=[].some.call(d,function(x){return !x.open});[].forEach.call(d,function(x){x.open=o});b.textContent=o?'Collapse all':'Expand all'};function show(id){var n=document.getElementById(id);if(n)[].forEach.call(all(),function(x){if(x.contains(n))x.open=true})}document.addEventListener('click',function(ev){var a=ev.target.closest&&ev.target.closest('a[href^="#"]');if(a)show(decodeURIComponent(a.getAttribute('href').slice(1)))});window.addEventListener('hashchange',function(){show(decodeURIComponent(location.hash.slice(1)))});if(location.hash)show(decodeURIComponent(location.hash.slice(1)));window.addEventListener('beforeprint',function(){[].forEach.call(all(),function(x){x.open=true})})})();</script></body></html>

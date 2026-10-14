@@ -16,7 +16,9 @@ from app.export import build_report, render_html
 from app.review import apply_action, build_items, review_schema
 from tests.fakes import FAKE_PRICES
 
-PACK = load_pack(ROOT / "packs" / "cps_interview_v2.yaml")
+CPS = load_pack(ROOT / "packs" / "cps_interview_v2.yaml")
+# The form section is still an engine feature; CPS v2 dropped it in 0.5.1 (report readability), so these tests add it back.
+PACK = CPS.model_copy(update={"review": CPS.review.model_copy(update={"sections": ["form", *CPS.review.sections]})})
 
 
 def utt(i, speaker, text):
@@ -116,7 +118,8 @@ def test_export_contains_only_accepted_and_edited():
     assert [r["label"] for r in note["sections"]["timeline"]] == ["Tuesday night · parent"]
     assert "summary" not in note["sections"] and note["not_included"]["rejected"] == 1
     page = render_html(note)
-    assert "2nd grade" in page and ">edited<" in page and "Tuesday night" in page
+    assert "Tuesday night" not in page  # a timeline with fewer than 2 dated events is not shown (the JSON keeps it)
+    assert "2nd grade" not in page and "Form fields" not in page  # the HTML report no longer shows form fields
     assert "Medical attention" not in page  # rejected
 
 
@@ -198,14 +201,15 @@ def test_ws_end_review_accept_and_export(tmp_path):
             pass
         items = m["review"]["draft"]["items"]
         assert items and all(i["evidence"] for i in items)
-        form = next(i for i in items if i["section"] == "form")
-        ws.send_json({"type": "review_action", "id": form["id"], "action": "accept"})
+        assert not [i for i in items if i["section"] == "form"]  # CPS v2 0.5.1 has no form section
+        first = next(i for i in items if i["section"] == "summary")
+        ws.send_json({"type": "review_action", "id": first["id"], "action": "accept"})
         while (m := ws.receive_json())["type"] != "review_item":
             pass
         assert m["item"]["status"] == "accepted"
     note = client.get(f"/api/sessions/{sid}/export.json").json()
-    assert [f["field_id"] for f in note["form_fields"]] == [form["field_id"]]
-    assert sum(map(len, note["sections"].values())) == 0
+    assert note["form_fields"] == [] and [i["id"] for i in note["sections"]["summary"]] == [first["id"]]
+    assert sum(map(len, note["sections"].values())) == 1
     page = client.get(f"/api/sessions/{sid}/export.html")
     assert page.status_code == 200 and "attachment" in page.headers["content-disposition"]
     assert (tmp_path / sid / "export.json").exists() and (tmp_path / sid / "report.html").exists()

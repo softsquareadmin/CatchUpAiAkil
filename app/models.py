@@ -209,6 +209,10 @@ class ReviewConfig(BaseModel):
     extra_sources: list[ExtraSource] = []
     account_groups: list[AccountGroup] = []
     show_coverage_score: bool = True      # false: counts and statuses only, no number (screen, HTML, JSON)
+    # HTML report layout (2026-10-14): sections shown right after the checklist coverage, open; and the section that
+    # the flags raised live are folded into (instead of their own list). Section ids as in the review, e.g. custom.x
+    lead_sections: list[str] = []
+    live_flags_into: str = ""
 
 
 GENERIC_PERSONA = ("You assist the person running an interview. You assist; you never decide. You never judge "

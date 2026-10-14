@@ -133,7 +133,7 @@ Below the cards are the other draft sections the interview type asks for (summar
 - **Include model cost** (off by default).
 - **Open report** shows it in the browser; **Export HTML** / **Export JSON** download it. Every export is logged in the audit trail and a copy is saved in the session folder.
 
-**The HTML report** is one self-contained file: header (interview type, date, duration, roles), a banner saying it is an AI-assisted draft and whether it was reviewed, checklist coverage, topic cards (gaps open), the other sections, the overall assessment if any, notes and consent, the optional transcript, and a footer with the models used and the tool statement. Everything from the transcript or a model is escaped; the file makes **no network requests** (no fonts, scripts or images from elsewhere), so it opens offline. To make a PDF, open the report and use the browser's **Print → Save as PDF**: all topic cards open for printing and cards are not split across pages.
+**The HTML report** is one self-contained file, laid out to scan quickly: header and banner (AI-assisted draft, reviewed or not, and one line "X of N items reviewed"), checklist coverage with jump links, then the interview type's lead sections (CPS: Safety Flags, with the flags raised live folded in, and Child's Direct Statements), topics in two groups ("Needs follow-up", required follow-ups first, each a one-line row with its suggested question; "Covered", closed), accounts as a table (a row per topic, a column per person or source, unheard people last; stacked on a phone), then the other sections closed with a count (attributed summary, timeline only when at least 2 events have a stated date, next steps with options that only repeat a topic's follow-up turned into links), notes and consent, and the transcript (closed). Each full quote is shown once, in its main place; elsewhere a "1:47 · u0019" link points to it (or to the transcript line when included). Every section is a native expandable block: **Expand all** opens everything, the content stays in the page for find, and it works without JavaScript. Everything from the transcript or a model is escaped; the file makes **no network requests** (no fonts, scripts or images from elsewhere), so it opens offline. To make a PDF, open the report and use the browser's **Print → Save as PDF**: every section opens for printing and cards are not split across pages. Form fields are kept in the JSON export but not shown in the HTML report.
 
 ![The top of an exported report](docs/screenshots/report-top.png)
 
@@ -276,6 +276,7 @@ Any setting can be overridden for one run with an environment variable (upper ca
 
 **Settings inside an interview type** (pack file), two worth knowing:
 - `review.show_coverage_score` (default `true`): `false` shows the coverage counts and statuses without the number, on screen, in the HTML and in the JSON.
+- `review.lead_sections` (list of section ids, e.g. `custom.safety_flags`): shown right after the checklist coverage in the HTML report, open. `review.live_flags_into` (a section id): the flags raised live are listed there instead of in their own section. Both are optional; without them the report keeps the generic layout.
 - `guardrails.allow_overall_recommendation` (default `false`): adds an overall assessment ("Draft for human review": strengths and gaps per topic, each with a quote, then a short draft view) to the review only, never during the interview. The job interview demo has it on; the CPS packs have it off. **Demo only:** not for real hiring or case decisions. Using it on real child welfare cases would need the owner's and the agency's approval.
 
 ## Adding an interview type
@@ -329,7 +330,8 @@ checklist:
 # ending_phrases: [...]          # lines that open "Before you leave"
 # review: {sections: [summary, topics_not_covered, follow_ups, form, timeline, accounts, missing_accounts, next_steps],
 #          custom_sections: [{id, label, type: text|list|status|boolean|score, instruction, required, ...}],
-#          instructions: {...}, extra_sources: [...], account_groups: [...], show_coverage_score: true}
+#          instructions: {...}, extra_sources: [...], account_groups: [...], show_coverage_score: true,
+#          lead_sections: [...], live_flags_into: ...}
 # form_schema: [{id, label, type: text|choice|date|number, choices, source_topic_ids}]
 ```
 

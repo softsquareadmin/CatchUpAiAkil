@@ -13,6 +13,8 @@ from app.evidence import normalise, validate
 from app.models import Evidence, ReviewItem, TopicState, UseCasePack, Utterance
 
 AI_SECTIONS = ("summary", "form", "timeline", "accounts", "missing_accounts", "next_steps")
+MISSING_PREFIX = "Account not yet heard from "  # missing_accounts label; the report reads the name back from it
+NOT_STATED = "not stated"  # a timeline item's "when" when nothing was said about it (label: "<when> · <source>")
 OVERALL = "overall_assessment"
 OVERALL_TITLE = "Overall assessment (draft for human review)"
 
@@ -327,7 +329,7 @@ def build_items(raw: dict, pack: UseCasePack, transcript: dict[str, Utterance], 
         add("form", e, f.label, value, field_id=f.id)
     src_label = {**{r.id: r.label.lower() for r in pack.roles}, **{x.id: x.label.lower() for x in pack.review.extra_sources}}
     for e in raw.get("timeline", []):
-        add("timeline", e, f"{e.get('when') or 'not stated'} · {src_label.get(e['said_by'], e['said_by'])}",
+        add("timeline", e, f"{e.get('when') or NOT_STATED} · {src_label.get(e['said_by'], e['said_by'])}",
             e.get("event", ""), source=e["said_by"])
     group_of = {t: g.topics[0] for g in pack.review.account_groups for t in g.topics}
     group_label = {g.topics[0]: g.label for g in pack.review.account_groups}
@@ -340,7 +342,7 @@ def build_items(raw: dict, pack: UseCasePack, transcript: dict[str, Utterance], 
         add("accounts", e, f"{topic} · {src_label.get(e['source'], e['source'])}", e.get("account", ""),
             source=e["source"], topic_id=e["topic_id"])
     for e in raw.get("missing_accounts", []):
-        add("missing_accounts", e, f"Account not yet heard from {e.get('name', '').strip()}", e.get("mentioned_as", ""))
+        add("missing_accounts", e, f"{MISSING_PREFIX}{e.get('name', '').strip()}", e.get("mentioned_as", ""))
     for e in raw.get("next_steps", []):
         add("next_steps", e, "Option", e.get("option", ""), topics=e.get("topic_ids") or [])
     custom = raw.get("custom") or {}

@@ -4,8 +4,9 @@
 # 0.4.0 (M7, 2026-10-08): pack_format 2. CPS rules moved here from code (roles, lint word lists, special topics,
 # review sections, prompt text); topic definitions unchanged. Change log: docs/dev-notes/PROGRESS.md "Pack change log".
 # 0.5.0 (2026-10-13): Safety Flags and Child's Direct Statements review sections, worded as CatchUp's aligned template.
+# 0.5.1 (2026-10-14, SPEC-report-readability): no Form fields section; report layout (lead_sections, live_flags_into).
 id: cps_interview_v2
-version: "0.5.0"   # 0.4.0: pack_format 2 (M7); 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
+version: "0.5.1"   # 0.5.0: Safety Flags, Child's Direct Statements; 0.4.0: pack_format 2 (M7); 0.3.0: CPS-source review changes 1-4; 0.3.1: "he is mean" too vague, household members (2026-10-08)
 pack_format: 2
 name: CPS interview (parent and child)
 purpose: >
@@ -170,7 +171,9 @@ special_topics:
     simple, everyday words. If the age is unknown, use simple words.
 
 review:
-  sections: [summary, topics_not_covered, follow_ups, form, timeline, accounts, missing_accounts, next_steps]
+  sections: [summary, topics_not_covered, follow_ups, timeline, accounts, missing_accounts, next_steps]
+  lead_sections: [custom.safety_flags, custom.child_direct_statements]   # HTML report: right after the coverage ring
+  live_flags_into: custom.safety_flags   # the flags raised live are listed there, not in their own section
   custom_sections:
   - id: safety_flags
     label: Safety Flags
@@ -248,5 +251,4 @@ final_prompts:
   review: >
     Review the whole interview. Write an attributed summary as reports ("Mom said...",
     "Jill said...") with no conclusions. List topics not or only partly covered, follow-ups
-    required or suggested, proposed form field values with evidence, and next steps worded as
-    options for the worker, never as findings.
+    required or suggested, and next steps worded as options for the worker, never as findings.

@@ -106,6 +106,10 @@ def check(pack: UseCasePack) -> list[str]:
         if x.id in role_ids:
             problems.append(f"review.extra_sources '{x.id}': id clashes with a role")
     problems += [f"review.instructions: unknown section '{k}'" for k in rv.instructions if k not in rv.sections]
+    known = set(rv.sections) | {f"custom.{c.id}" for c in rv.custom_sections}
+    problems += [f"review.lead_sections: unknown section '{k}'" for k in rv.lead_sections if k not in known]
+    if rv.live_flags_into and rv.live_flags_into not in known:
+        problems.append(f"review.live_flags_into: unknown section '{rv.live_flags_into}'")
     problems += custom_section_problems([s.model_dump() for s in rv.custom_sections])
     # forms
     field_ids = [f.id for f in pack.form_schema]
