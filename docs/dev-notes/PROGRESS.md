@@ -334,7 +334,7 @@ Findings:
 
 ## Next step (updated 2026-10-08)
 - SPEC-M11-report-and-readme.md (2026-10-08) adds M10a (rate limits), M11 (report), M12 (visual pass, separate pages), M13 (README, replaces the old M11) and lifts the single-page rule. Owner decisions there taken at their defaults (number shown for CPS demo, unreviewed and transcript and cost off by default, optional worker name, plain JS, dark mode only if cheap, `docs/reference/` gitignored (done), 18 requests/min, no fallback model, per-criterion status later). M10a built and paid-checked (limit not reproduced; gate latency watch item). M11 done. M12 done (look approved). M13 README and the CatchUp design-decisions doc written (owner to review). Still needed from the owner: John Smith's topics (M10 item 2), the usability check, the OpenRouter limit check (M10a owner task). Earlier open items: the owner's live-voice mic test (M4); card latency 2.4-8.3 s vs the 3-4 s target; John Smith's review of the topic definitions and answer key.
-- 2026-10-11: team decided to merge CatchUpAI and this POC. Prep doc for the merge meeting: `docs/merge-discussion-prep.md` (read all of CatchUpAI at `8dc45e6` for it; no code changed).
+- 2026-10-11: team decided to merge CatchUpAI and this POC. A prep doc for the merge meeting was written (kept outside the repo; read all of CatchUpAI at `8dc45e6` for it; no code changed).
 
 ## Earlier next step (superseded)
 - Wait for M2 review and a decision on gate latency. Then M3: cue writer (`anthropic/claude-haiku-5.5`), follow-up cards, flags, notes pane, consent indicator, leading-question lint, cue de-dup and cooldown.
